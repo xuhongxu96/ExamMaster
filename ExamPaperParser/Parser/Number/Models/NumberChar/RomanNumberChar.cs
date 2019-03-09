@@ -5,7 +5,7 @@ using System.Text;
 namespace ExamPaperParser.Parser.Number.Models.NumberChar
 {
     /// <summary>
-    /// Ⅰ, Ⅱ, 	Ⅲ or
+    /// Ⅰ, Ⅱ, Ⅲ or
     /// I, II, III or
     /// ⅰ, ⅱ, ⅲ or
     /// i, ii, iii or
