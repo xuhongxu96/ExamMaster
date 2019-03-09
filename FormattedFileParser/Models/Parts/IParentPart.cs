@@ -4,7 +4,8 @@ using System.Text;
 
 namespace FormattedFileParser.Models.Parts
 {
-    public interface IMainPart : IParentPart
+    public interface IParentPart : IPart
     {
+        IList<IPart> Parts { get; } 
     }
 }

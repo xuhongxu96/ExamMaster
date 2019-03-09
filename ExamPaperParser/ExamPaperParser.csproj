@@ -6,4 +6,8 @@
     <NullableContextOptions>safeonly</NullableContextOptions>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FormattedFileParser\FormattedFileParser.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -7,12 +7,14 @@ using System.Text;
 namespace FormattedFileParser.Models.Parts.Paragraphs
 {
     [DebuggerDisplay("Content = {Content}, PartCount = {Parts.Count}")]
-    public class ParagraphPart : Part, IMainPart
+    public struct ParagraphPart : IMainPart
     {
-        public int Order { get; set; } = -1;
+        public string Content { get; set; }
 
-        public IList<Part> Parts { get; set; } = new List<Part>();
+        public int Order { get; set; } 
 
-        public ParagraphStyle Style { get; set; } = new ParagraphStyle();
+        public IList<IPart> Parts { get; set; } 
+
+        public ParagraphStyle Style { get; set; } 
     }
 }

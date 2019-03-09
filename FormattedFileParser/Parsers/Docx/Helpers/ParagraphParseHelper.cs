@@ -82,16 +82,16 @@ namespace FormattedFileParser.Parsers.Docx.Helpers
             };
         }
 
-        internal static IEnumerable<Part> ConcatTextPartsWithSameStyle(IEnumerable<Part> parts)
+        internal static IEnumerable<IPart> ConcatTextPartsWithSameStyle(IEnumerable<IPart> parts)
         {
-            var result = new List<Part>();
-            TextPart? concatPart = null;
+            var result = new List<IPart>();
+            TextPart concatPart = new TextPart();
 
             foreach (var part in parts)
             {
                 if (part is TextPart textPart)
                 {
-                    if (concatPart == null)
+                    if (string.IsNullOrEmpty(concatPart.Content))
                     {
                         concatPart = textPart;
                     }
@@ -111,7 +111,7 @@ namespace FormattedFileParser.Parsers.Docx.Helpers
                 }
             }
 
-            if (concatPart != null)
+            if (!string.IsNullOrEmpty(concatPart.Content))
             {
                 result.Add(concatPart);
             }
@@ -121,7 +121,7 @@ namespace FormattedFileParser.Parsers.Docx.Helpers
 
         public static ParagraphPart ParseParagraph(int i, Paragraph paragraph)
         {
-            var parts = new List<Part>();
+            var parts = new List<IPart>();
 
             foreach (var run in paragraph.Elements<Run>())
             {

@@ -53,7 +53,7 @@ namespace FormattedFileParser.Parsers.Docx.Helpers
             };
         }
 
-        public static IEnumerable<Part> ParseRun(Run run)
+        public static IEnumerable<IPart> ParseRun(Run run)
         {
             var style = ParseRunProperties(run.RunProperties);
 

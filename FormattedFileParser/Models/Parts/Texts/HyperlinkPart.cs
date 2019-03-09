@@ -4,8 +4,10 @@ using System.Text;
 
 namespace FormattedFileParser.Models.Parts.Texts
 {
-    public class HyperlinkPart : TextPart
+    public struct HyperlinkPart : ITextPart
     {
-        public string Link { get; set; } = "";
+        public string Content { get; set; }
+        public TextStyle Style { get; set; }
+        public string Link { get; set; } 
     }
 }

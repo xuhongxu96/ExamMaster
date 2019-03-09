@@ -3,8 +3,9 @@ using System.Collections.Generic;
 
 namespace FormattedFileParser.Models.Parts.Tables
 {
-    public class TableCellPart : Part
+    public struct TableCellPart : IPart
     {
-        public IList<IMainPart> MainParts { get; set; } = new List<IMainPart>();
+        public string Content { get; set; }
+        public IList<IMainPart> MainParts { get; set; } 
     }
 }

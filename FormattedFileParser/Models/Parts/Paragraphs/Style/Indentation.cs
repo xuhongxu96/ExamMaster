@@ -4,12 +4,12 @@ using System.Text;
 
 namespace FormattedFileParser.Models.Parts.Paragraphs.Style
 {
-    public class Indentation
+    public struct Indentation
     {
-        public int Left { get; set; } = 0;
+        public int Left { get; set; } 
 
-        public int Right { get; set; } = 0;
+        public int Right { get; set; }
 
-        public int FirstLine { get; set; } = 0;
+        public int FirstLine { get; set; } 
     }
 }

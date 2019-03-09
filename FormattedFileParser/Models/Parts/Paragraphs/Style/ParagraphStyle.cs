@@ -9,10 +9,10 @@ namespace FormattedFileParser.Models.Parts.Paragraphs.Style
         Left, Center, Right, Justified, Other
     }
 
-    public class ParagraphStyle
+    public struct ParagraphStyle
     {
-        public Indentation Indent { get; set; } = new Indentation();
+        public Indentation Indent { get; set; } 
 
-        public Justification Justification { get; set; } = Justification.Justified;
+        public Justification Justification { get; set; } 
     }
 }
