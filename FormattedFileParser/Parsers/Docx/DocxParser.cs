@@ -26,7 +26,7 @@ namespace FormattedFileParser.Parsers.Docx
 
         private static TablePart ParseTable(int i, Table table)
         {
-            return new TablePart { Content = table.InnerText };
+            return new TablePart();
         }
 
         private static IEnumerable<IMainPart> ParseDocument(Document document)

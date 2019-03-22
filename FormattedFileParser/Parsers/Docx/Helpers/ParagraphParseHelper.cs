@@ -132,7 +132,6 @@ namespace FormattedFileParser.Parsers.Docx.Helpers
 
             return new ParagraphPart
             {
-                Content = paragraph.InnerText,
                 Order = i,
                 Style = ParseParagraphProperties(paragraph.ParagraphProperties),
                 Parts = parts,

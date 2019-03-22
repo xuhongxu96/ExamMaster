@@ -7,7 +7,7 @@ namespace FormattedFileParser.Models.Parts.Tables
 {
     public struct TablePart : IMainPart
     {
-        public string Content { get; set; }
+        public string Content => string.Join("", Parts.Select(o => o.Content));
 
         public int Order { get; set; }
 
