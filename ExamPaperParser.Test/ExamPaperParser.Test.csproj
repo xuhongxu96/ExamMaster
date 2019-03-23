@@ -20,4 +20,10 @@
     <ProjectReference Include="..\ExamPaperParser\ExamPaperParser.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="*.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
