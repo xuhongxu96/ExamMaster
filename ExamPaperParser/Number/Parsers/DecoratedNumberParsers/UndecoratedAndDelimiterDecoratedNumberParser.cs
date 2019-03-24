@@ -12,7 +12,7 @@ namespace ExamPaperParser.Number.Parsers.DecoratedNumberParsers
 {
     public class UndecoratedAndDelimiterDecoratedNumberParser : BaseDecoratedNumberParser
     {
-        private static Regex delimiterRegex = new Regex(@"^[.,:)\]}>．。，、：）】]", RegexOptions.Compiled);
+        private static Regex delimiterRegex = new Regex(@"^[\s.,:)\]}>．。，、：）】]", RegexOptions.Compiled);
 
         public UndecoratedAndDelimiterDecoratedNumberParser(INumberParser numberParser) : base(numberParser)
         {
@@ -31,10 +31,16 @@ namespace ExamPaperParser.Number.Parsers.DecoratedNumberParsers
 
                 if (!(m = delimiterRegex.Match(data.CurrentView.ToString())).Success)
                 {
+                    if (number is ChineseNumber || number is RomanNumber)
+                    {
+                        continue;
+                    }
+
                     yield return new ParsedResult<BaseDecoratedNumber>(
                         result: new UndecoratedNumber(number),
                         dataView: data);
-                    yield break;
+
+                    continue;
                 }
 
                 data = data.CloneByDelta(m.Index + m.Length);

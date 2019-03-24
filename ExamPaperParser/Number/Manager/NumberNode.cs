@@ -20,7 +20,7 @@ namespace ExamPaperParser.Number.Manager
 
         public int ParagraphOrder { get; }
 
-        public bool HasAdjacentNumber { get; set; } = false;
+        public string Content { get; set; } = string.Empty;
 
         public BaseNumberNode Parent { get; }
 

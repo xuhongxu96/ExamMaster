@@ -89,8 +89,10 @@ namespace ExamPaperParser.Number.Differentiators
             { "】", "]" },
             { "。", "." },
             { "，", "," },
-            { "．", "." },
+            { "．", "" },
+            { ".", "" },
             { "：", ":" },
+            { " ", "" },
         };
 
         private string NormalizeBracket(string bracket)
@@ -126,6 +128,8 @@ namespace ExamPaperParser.Number.Differentiators
                 case DelimiterDecoratedNumber delimiterDecoratedNumber:
                     var delimiter = NormalizeDelimiter(delimiterDecoratedNumber.Delimiter);
                     return $"{numberDifferentiator}{delimiter}";
+                case UndecoratedNumber undecoratedNumber:
+                    return $"{numberDifferentiator}";
                 default:
                     return string.Empty;
             }

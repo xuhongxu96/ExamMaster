@@ -3,6 +3,7 @@ using FormattedFileParser.Models.Parts.Paragraphs;
 using FormattedFileParser.Models.Parts.Texts;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ExamPaperParser.Helpers
@@ -38,6 +39,16 @@ namespace ExamPaperParser.Helpers
 
             paragraphPart.Parts = parts;
             return paragraphPart;
+        }
+
+        public static double GetMaxTextSize(this ParagraphPart paragraphPart)
+        {
+            return paragraphPart.Parts.Where(o => o is TextPart).Max(o => ((TextPart)o).Style.Size);
+        }
+
+        public static double GetAverageTextSize(this ParagraphPart paragraphPart)
+        {
+            return paragraphPart.Parts.Where(o => o is TextPart).Average(o => ((TextPart)o).Style.Size);
         }
     }
 }

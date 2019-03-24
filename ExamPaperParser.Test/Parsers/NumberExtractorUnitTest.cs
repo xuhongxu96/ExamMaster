@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using ExamPaperParser.Number.Extractors;
 using ExamPaperParser.Number.Manager;
 using ExamPaperParser.Number.Parsers.DecoratedNumberParsers;
@@ -20,11 +21,11 @@ namespace ExamPaperParser.Test.Parsers
         {
             _output = output;
         }
-        
+
         private void VisitNode(NumberNode node, int level)
         {
             var padding = string.Join("", Enumerable.Repeat("  ", level));
-            _output.WriteLine($"{padding}- {node.DecoratedNumber.RawRepresentation}");
+            _output.WriteLine($"{padding}- {node.DecoratedNumber.RawRepresentation}: {node.Content}");
 
             foreach (var child in node.Children)
             {
@@ -45,14 +46,30 @@ namespace ExamPaperParser.Test.Parsers
         {
             var numberParser = new UniversalNumberParser();
             var parser = new UniversalDecoratedNumberParser(numberParser);
-            var extractor = new NumberExtractor(parser);
+            var extractor = new NumberExtractor(parser, new Regex(@"答案", RegexOptions.Compiled));
 
             using (var docxParser = new DocxParser("test1.docx"))
             {
-                var res = docxParser.Parse();
-                var root = extractor.Extract(res);
+                var doc = docxParser.Parse();
+                var results = extractor.Extract(doc);
 
-                VisitRoot(root);
+                foreach (var result in results)
+                {
+                    _output.WriteLine(result.Item1);
+                    VisitRoot(result.Item2);
+                }
+            }
+
+            using (var docxParser = new DocxParser("test2.docx"))
+            {
+                var doc = docxParser.Parse();
+                var results = extractor.Extract(doc);
+
+                foreach (var result in results)
+                {
+                    _output.WriteLine(result.Item1);
+                    VisitRoot(result.Item2);
+                }
             }
         }
     }

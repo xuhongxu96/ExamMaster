@@ -123,9 +123,17 @@ namespace FormattedFileParser.Parsers.Docx.Helpers
         {
             var parts = new List<IPart>();
 
-            foreach (var run in paragraph.Elements<Run>())
+            foreach (var element in paragraph.Elements())
             {
-                parts.AddRange(RunParseHelper.ParseRun(run));
+                switch (element)
+                {
+                    case Run run:
+                        parts.AddRange(RunParseHelper.ParseRun(run));
+                        break;
+                    case Break _:
+                        parts.Add(new TextPart { Content = "\n", Style = new TextStyle() });
+                        break;
+                }
             }
 
             parts = ConcatTextPartsWithSameStyle(parts).ToList();
