@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ExamPaperParser.Order.Parsers.NumberParsers.Helpers;
+using ExamPaperParser.Number.Parsers.NumberParsers.Helpers;
 using Xunit;
 
 namespace ExamPaperParser.Test.Parsers

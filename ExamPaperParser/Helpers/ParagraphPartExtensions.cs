@@ -26,7 +26,10 @@ namespace ExamPaperParser.Helpers
                     }
                     else if (isStart)
                     {
+                        textPart.Content = textPart.Content.TrimStart();
                         isStart = false;
+                        parts.Add(textPart);
+                        continue;
                     }
                 }
 

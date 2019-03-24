@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ExamPaperParser.Order.Extractors;
-using ExamPaperParser.Order.Parsers.DecoratedNumberParsers;
-using ExamPaperParser.Order.Parsers.NumberParsers;
+using ExamPaperParser.Number.Extractors;
+using ExamPaperParser.Number.Manager;
+using ExamPaperParser.Number.Parsers.DecoratedNumberParsers;
+using ExamPaperParser.Number.Parsers.NumberParsers;
 using FormattedFileParser.Parsers.Docx;
 using Xunit;
 using Xunit.Abstractions;
@@ -19,6 +20,25 @@ namespace ExamPaperParser.Test.Parsers
         {
             _output = output;
         }
+        
+        private void VisitNode(NumberNode node, int level)
+        {
+            var padding = string.Join("", Enumerable.Repeat("  ", level));
+            _output.WriteLine($"{padding}- {node.DecoratedNumber.RawRepresentation}");
+
+            foreach (var child in node.Children)
+            {
+                VisitNode(child, level + 1);
+            }
+        }
+
+        private void VisitRoot(NumberRoot root)
+        {
+            foreach (var child in root.Children)
+            {
+                VisitNode(child, 0);
+            }
+        }
 
         [Fact]
         public void Test()
@@ -30,12 +50,9 @@ namespace ExamPaperParser.Test.Parsers
             using (var docxParser = new DocxParser("test1.docx"))
             {
                 var res = docxParser.Parse();
+                var root = extractor.Extract(res);
 
-                foreach (var number in extractor.Extract(res))
-                {
-                    _output.WriteLine(number);
-                    _output.WriteLine("---");
-                }
+                VisitRoot(root);
             }
         }
     }
