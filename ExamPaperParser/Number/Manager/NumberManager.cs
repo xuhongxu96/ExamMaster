@@ -5,19 +5,13 @@ using System.Text;
 using ExamPaperParser.Number.Differentiators;
 using ExamPaperParser.Number.Manager.Exceptions;
 using ExamPaperParser.Number.Models.DecoratedNumbers;
+using ExamPaperParser.Number.Models.NumberTree;
 
 namespace ExamPaperParser.Number.Manager
 {
-    public class NumberManager
+    public class NumberManager : INumberManager
     {
         private INumberDifferentiator _numberDifferentiator;
-
-        public struct LevelProps
-        {
-            public int Level { get; set; }
-
-            public int MaxNumber { get; set; }
-        }
 
         /// <summary>
         /// Props of level for each differentiator
@@ -35,15 +29,6 @@ namespace ExamPaperParser.Number.Manager
         private NumberNode? _current = null;
 
         public NumberRoot Root { get; private set; } = new NumberRoot();
-
-        public struct Backup
-        {
-            public Dictionary<string, LevelProps> DifferentiatorLevelPropsMapping { get; set; }
-
-            public HashSet<string> DifferentiatorSet { get; set; }
-
-            public NumberNode? Current { get; set; }
-        }
 
         public NumberManager(INumberDifferentiator numberDifferentiator)
         {

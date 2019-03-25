@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ExamPaperParser.Number.Manager
+namespace ExamPaperParser.Number.Models.NumberTree
 {
     public abstract class BaseNumberNode
     {

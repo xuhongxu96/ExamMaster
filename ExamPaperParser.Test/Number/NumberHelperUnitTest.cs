@@ -4,7 +4,7 @@ using System.Text;
 using ExamPaperParser.Number.Parsers.NumberParsers.Helpers;
 using Xunit;
 
-namespace ExamPaperParser.Test.Parsers
+namespace ExamPaperParser.Test.Number
 {
     public class NumberHelperUnitTest
     {

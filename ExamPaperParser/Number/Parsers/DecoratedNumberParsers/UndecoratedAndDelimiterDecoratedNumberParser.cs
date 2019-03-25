@@ -20,6 +20,11 @@ namespace ExamPaperParser.Number.Parsers.DecoratedNumberParsers
 
         public override IEnumerable<ParsedResult<BaseDecoratedNumber>> Consume(IDataView data)
         {
+            if (data.EndOfStream)
+            {
+                yield break;
+            }
+
             Match m;
 
             foreach (var numberResult in ConsumeNumber(data))

@@ -22,6 +22,11 @@ namespace ExamPaperParser.Number.Parsers.DecoratedNumberParsers
 
         public override IEnumerable<ParsedResult<BaseDecoratedNumber>> Consume(IDataView data)
         {
+            if (data.EndOfStream)
+            {
+                yield break;
+            }
+
             string left;
             Match m;
 

@@ -6,8 +6,10 @@ using ExamPaperParser.Number.Manager;
 using ExamPaperParser.Number.Manager.Exceptions;
 using ExamPaperParser.Number.Models;
 using ExamPaperParser.Number.Models.DecoratedNumbers;
+using ExamPaperParser.Number.Models.NumberTree;
 using ExamPaperParser.Number.Models.PaperNumbers;
 using ExamPaperParser.Number.Parsers.DecoratedNumberParsers;
+using ExamPaperParser.Number.Postprocessors;
 using FormattedFileParser.Models;
 using FormattedFileParser.Models.Parts.Paragraphs;
 using FormattedFileParser.Models.Parts.Paragraphs.Style;
@@ -21,12 +23,17 @@ using System.Text.RegularExpressions;
 
 namespace ExamPaperParser.Number.Extractors
 {
-    public class NumberExtractor
+    public class NumberExtractor : INumberExtractor
     {
-        private IDecoratedNumberParser _decoratedNumberParser;
-        private NumberManager _numberManager = new NumberManager(new SimpleNumberDifferentiator());
         private Regex _spaceRegex = new Regex(@"(.*?)(\s+|$)", RegexOptions.Compiled);
         private Regex _titleBlackRegex;
+
+        private IDecoratedNumberParser _decoratedNumberParser;
+        private INumberManager _numberManager = new NumberManager(new SimpleNumberDifferentiator());
+        private List<IPostprocessor> _postprocessors = new List<IPostprocessor>
+        {
+            new ChoiceQuestionPostprocessor(),
+        };
 
         public NumberExtractor(
             IDecoratedNumberParser decoratedNumberParser,
@@ -70,14 +77,14 @@ namespace ExamPaperParser.Number.Extractors
             return null;
         }
 
-        private bool ExtractFromDataView(IDataView data, int paragraphOrder)
+        private NumberNode? ExtractFromDataView(IDataView data, int paragraphOrder)
         {
             var content = new StringBuilder();
 
             var lastNode = ConsumeNumberFromDataView(ref data, paragraphOrder);
             if (lastNode == null)
             {
-                return false;
+                return null;
             }
 
             while (!data.EndOfStream)
@@ -87,7 +94,7 @@ namespace ExamPaperParser.Number.Extractors
                 NumberNode node;
                 if ((node = ConsumeNumberFromDataView(ref data, paragraphOrder)) != null)
                 {
-                    lastNode.Content = currentContent;
+                    lastNode.Header = currentContent.Trim();
                     lastNode = node;
                     content.Clear();
                 }
@@ -97,11 +104,11 @@ namespace ExamPaperParser.Number.Extractors
                 }
             }
 
-            lastNode.Content = content.ToString();
-            return true;
+            lastNode.Header = content.ToString().Trim();
+            return lastNode;
         }
 
-        private bool ExtractFromParagraph(ParagraphPart paragraph)
+        private NumberNode? ExtractFromParagraph(ParagraphPart paragraph)
         {
             paragraph = paragraph.TrimStart();
             var content = paragraph.Content;
@@ -117,15 +124,25 @@ namespace ExamPaperParser.Number.Extractors
                 return false;
             }
 
-            // var isCenter = paragraph.Style.Justification == Justification.Center;
+            var isCenter = paragraph.Style.Justification == Justification.Center
+                || paragraph.Content.Length - paragraph.Content.TrimStart().Length > 2;
             var isBold = paragraph.Parts[0] is TextPart textPart && textPart.Style.IsBold == true;
             var isTextSizeLargeEnough = maxTextSize - paragraph.GetAverageTextSize() <= 4;
 
-            return isBold && isTextSizeLargeEnough;
+            return isCenter && isBold && isTextSizeLargeEnough;
+        }
+
+        private void Postprocess(NumberRoot root)
+        {
+            foreach (var processor in _postprocessors)
+            {
+                processor.Process(root);
+            }
         }
 
         public IEnumerable<Tuple<string, NumberRoot>> Extract(ParsedFile file)
         {
+            NumberNode? lastNode = null;
             string lastTitle = string.Empty;
             _numberManager.Reset();
 
@@ -136,7 +153,12 @@ namespace ExamPaperParser.Number.Extractors
                 switch (part)
                 {
                     case ParagraphPart paragraph:
-                        if (!ExtractFromParagraph(paragraph))
+                        NumberNode? currentNode;
+                        if ((currentNode = ExtractFromParagraph(paragraph)) != null)
+                        {
+                            lastNode = currentNode;
+                        }
+                        else
                         {
                             // If no number was parsed in paragraph, judge if it is a title
                             if (IsTitle(paragraph, maxTextSize))
@@ -144,6 +166,7 @@ namespace ExamPaperParser.Number.Extractors
                                 if (_numberManager.Root.ChildDifferentiator != null
                                     && !_titleBlackRegex.IsMatch(lastTitle))
                                 {
+                                    Postprocess(_numberManager.Root);
                                     yield return Tuple.Create(lastTitle, _numberManager.Root);
                                 }
 
@@ -151,6 +174,11 @@ namespace ExamPaperParser.Number.Extractors
                                 var allowFirstNumbers = _numberManager.GetAllowFirstNumberForDifferentiators();
                                 _numberManager.Reset();
                                 _numberManager.SetAllowFirstNumberForDifferentatiators(allowFirstNumbers);
+                            }
+                            else if (lastNode != null)
+                            {
+                                // If it's not title either, append it to node content
+                                lastNode.Content = $"{lastNode.Content}\n{paragraph.Content}".Trim();
                             }
                         }
                         break;
@@ -162,6 +190,7 @@ namespace ExamPaperParser.Number.Extractors
             if (_numberManager.Root.ChildDifferentiator != null
                 && !_titleBlackRegex.IsMatch(lastTitle))
             {
+                Postprocess(_numberManager.Root);
                 yield return Tuple.Create(lastTitle, _numberManager.Root);
             }
         }

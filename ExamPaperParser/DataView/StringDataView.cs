@@ -13,7 +13,7 @@ namespace ExamPaperParser.DataView
 
         public string Content { get; }
 
-        public override bool EndOfStream => Position >= Content.Length;
+        public override bool EndOfStream => Position >= Content.Length || Position < 0;
 
         public override ReadOnlySpan<char> CurrentView => Content.AsSpan(Position);
 

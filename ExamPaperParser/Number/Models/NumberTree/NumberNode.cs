@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ExamPaperParser.Number.Models.DecoratedNumbers;
 
-namespace ExamPaperParser.Number.Manager
+namespace ExamPaperParser.Number.Models.NumberTree
 {
     public class NumberNode : BaseNumberNode
     {
@@ -19,6 +19,8 @@ namespace ExamPaperParser.Number.Manager
         public BaseDecoratedNumber DecoratedNumber { get; }
 
         public int ParagraphOrder { get; }
+
+        public string Header { get; set; } = string.Empty;
 
         public string Content { get; set; } = string.Empty;
 

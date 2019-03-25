@@ -42,9 +42,7 @@ namespace FormattedFileParser.Parsers.Docx.Helpers
         {
             return new TextStyle
             {
-                Size = int.Parse(runProp.FontSize?.Val?.Value ??
-                    runProp.FontSizeComplexScript?.Val?.Value ??
-                    "21"),
+                Size = int.Parse(runProp.FontSize?.Val?.Value ?? "21"),
                 IsBold = OpenXmlTypeHelper.OnOffToBool(runProp.Bold),
                 IsItalic = OpenXmlTypeHelper.OnOffToBool(runProp.Italic),
                 IsUnderlined = OpenXmlTypeHelper.EnumToBool(runProp.Underline?.Val, UnderlineValues.None),

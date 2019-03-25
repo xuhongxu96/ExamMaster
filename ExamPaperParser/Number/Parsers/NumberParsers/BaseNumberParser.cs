@@ -23,6 +23,11 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
 
         public IEnumerable<ParsedResult<BaseNumber>> Consume(IDataView data)
         {
+            if (data.EndOfStream)
+            {
+                yield break;
+            }
+
             var m = regex.Match(data.CurrentView.ToString());
             if (!m.Success)
             {
