@@ -17,10 +17,10 @@ namespace ExamPaperParser.Test.Number
     public class NumberExtractorUnitTest
     {
         private readonly ITestOutputHelper _output;
+
         private static readonly UniversalNumberParser _numberParser = new UniversalNumberParser();
         private static readonly UniversalDecoratedNumberParser _decoratedNumberParser = new UniversalDecoratedNumberParser(_numberParser);
         private static readonly NumberExtractor _extractor = new NumberExtractor(_decoratedNumberParser, new Regex(@"答案", RegexOptions.Compiled));
-
 
         public NumberExtractorUnitTest(ITestOutputHelper output)
         {
@@ -69,7 +69,6 @@ namespace ExamPaperParser.Test.Number
         public void Test1()
         {
             ParseDocx("test1.docx");
-            ParseDocx("test2.docx");
         }
 
         [Fact]

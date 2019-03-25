@@ -43,7 +43,7 @@ namespace ExamPaperParser.Number.Extractors
             _titleBlackRegex = titleBlackRegex;
         }
 
-        private string? ConsumeContent(ref IDataView data)
+        private string? ConsumeContentToSpaceOrEnd(ref IDataView data)
         {
             var m = _spaceRegex.Match(data.CurrentView.ToString());
             if (m.Success)
@@ -100,7 +100,7 @@ namespace ExamPaperParser.Number.Extractors
                 }
                 else
                 {
-                    content.Append(ConsumeContent(ref data));
+                    content.Append(ConsumeContentToSpaceOrEnd(ref data));
                 }
             }
 
