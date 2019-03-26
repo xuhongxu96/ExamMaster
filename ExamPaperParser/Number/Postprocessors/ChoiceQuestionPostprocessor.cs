@@ -13,24 +13,12 @@ using ExamPaperParser.Number.Visitors;
 
 namespace ExamPaperParser.Number.Postprocessors
 {
-    public class ChoiceQuestionPostprocessor : IPostprocessor
+    public class ChoiceQuestionPostprocessor : BaseVisitNodePostprocessor
     {
         private readonly LowerChineseNumberParser _lowerChineseNumberParser = new LowerChineseNumberParser();
         private readonly Regex _suffix = new Regex(@"^[项组个][是为]", RegexOptions.Compiled);
-        private readonly INumberNodeVisitor _numberNodeVisitor;
 
-        public ChoiceQuestionPostprocessor()
-            : this(new NumberNodeVisitor())
-        {
-        }
-
-        public ChoiceQuestionPostprocessor(INumberNodeVisitor numberNodeVisitor)
-        {
-            _numberNodeVisitor = numberNodeVisitor;
-            _numberNodeVisitor.OnVisited += NumberNodeVisitor_OnVisited;
-        }
-
-        private bool NumberNodeVisitor_OnVisited(NumberNode node, int level)
+        protected override bool NumberNodeVisitor_OnVisited(NumberNode node, int level)
         {
             if (IsChoiceQuestion(node))
             {
@@ -100,11 +88,6 @@ namespace ExamPaperParser.Number.Postprocessors
             }
 
             return sb.ToString();
-        }
-
-        public void Process(NumberRoot root)
-        {
-            _numberNodeVisitor.Visit(root);
         }
     }
 }

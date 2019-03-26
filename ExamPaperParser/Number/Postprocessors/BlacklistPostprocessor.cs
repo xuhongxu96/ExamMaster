@@ -8,20 +8,21 @@ using ExamPaperParser.Number.Visitors;
 
 namespace ExamPaperParser.Number.Postprocessors
 {
-    public class BlacklistPostprocessor : IPostprocessor
+    public class BlacklistPostprocessor : BaseVisitNodePostprocessor
     {
-        private readonly INumberNodeVisitor _numberNodeVisitor;
         private readonly Regex _blackRegex;
 
+        public BlacklistPostprocessor(Regex blackRegex)
+            : this(blackRegex, new NumberNodeVisitor())
+        { }
+
         public BlacklistPostprocessor(Regex blackRegex, INumberNodeVisitor numberNodeVisitor)
+            : base(numberNodeVisitor)
         {
             _blackRegex = blackRegex;
-
-            _numberNodeVisitor = numberNodeVisitor;
-            _numberNodeVisitor.OnVisited += NumberNodeVisitor_OnVisited;
         }
 
-        private bool NumberNodeVisitor_OnVisited(NumberNode node, int level)
+        protected override bool NumberNodeVisitor_OnVisited(NumberNode node, int level)
         {
             var newBodySb = new StringBuilder();
 
@@ -42,16 +43,6 @@ namespace ExamPaperParser.Number.Postprocessors
             node.Body = newBodySb.ToString();
 
             return true;
-        }
-
-        public BlacklistPostprocessor(Regex blackRegex)
-            : this(blackRegex, new NumberNodeVisitor())
-        {
-        }
-
-        public void Process(NumberRoot root)
-        {
-            _numberNodeVisitor.Visit(root);
         }
     }
 }

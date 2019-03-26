@@ -39,6 +39,7 @@ namespace ExamPaperParser.Number.Extractors
             {
                 new ChoiceQuestionPostprocessor(),
                 new BlacklistPostprocessor(new Regex(@"^【.*?(答案|解析|点评|试题).*?】|中小学教育网|转载.*?注明出处", RegexOptions.Compiled)),
+                new QuestionScorePostprocessor(),
             })
         { }
 

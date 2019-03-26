@@ -18,14 +18,16 @@ namespace ExamPaperParser.Number.Models.NumberTree
 
         public BaseDecoratedNumber DecoratedNumber { get; }
 
+        public BaseNumberNode Parent { get; }
+
+        public override int Level { get; }
+
         public int ParagraphOrder { get; }
 
         public string Header { get; set; } = string.Empty;
 
         public string Body { get; set; } = string.Empty;
 
-        public BaseNumberNode Parent { get; }
-
-        public override int Level { get; }
+        public double Score { get; set; } = 0.0;
     }
 }
