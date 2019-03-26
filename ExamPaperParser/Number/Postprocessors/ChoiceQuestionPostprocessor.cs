@@ -9,13 +9,41 @@ using ExamPaperParser.Number.Models.DecoratedNumbers;
 using ExamPaperParser.Number.Models.Numbers;
 using ExamPaperParser.Number.Models.NumberTree;
 using ExamPaperParser.Number.Parsers.NumberParsers;
+using ExamPaperParser.Number.Visitors;
 
 namespace ExamPaperParser.Number.Postprocessors
 {
     public class ChoiceQuestionPostprocessor : IPostprocessor
     {
-        private LowerChineseNumberParser _lowerChineseNumberParser = new LowerChineseNumberParser();
-        private Regex _suffix = new Regex(@"^[项组个][是为]", RegexOptions.Compiled);
+        private readonly LowerChineseNumberParser _lowerChineseNumberParser = new LowerChineseNumberParser();
+        private readonly Regex _suffix = new Regex(@"^[项组个][是为]", RegexOptions.Compiled);
+        private readonly INumberNodeVisitor _numberNodeVisitor;
+
+        public ChoiceQuestionPostprocessor()
+            : this(new NumberNodeVisitor())
+        {
+        }
+
+        public ChoiceQuestionPostprocessor(INumberNodeVisitor numberNodeVisitor)
+        {
+            _numberNodeVisitor = numberNodeVisitor;
+            _numberNodeVisitor.OnVisited += NumberNodeVisitor_OnVisited;
+        }
+
+        private bool NumberNodeVisitor_OnVisited(NumberNode node, int level)
+        {
+            if (IsChoiceQuestion(node))
+            {
+                node.Body = $"{node.Body}\n{ConcatNodeContent(node)}".Trim();
+
+                node.ChildDifferentiator = null;
+                node.Children.Clear();
+
+                return false;
+            }
+
+            return true;
+        }
 
         private bool IsChoiceQuestion(NumberNode node)
         {
@@ -33,7 +61,7 @@ namespace ExamPaperParser.Number.Postprocessors
                 }
             }
 
-            IDataView data = new StringDataView(node.Content);
+            IDataView data = new StringDataView(node.Header);
 
             while (!data.EndOfStream)
             {
@@ -63,7 +91,7 @@ namespace ExamPaperParser.Number.Postprocessors
             var sb = new StringBuilder();
             if (!root)
             {
-                sb.AppendLine($"{node.DecoratedNumber.RawRepresentation}{node.Header}\n{node.Content}".Trim());
+                sb.AppendLine($"{node.DecoratedNumber.RawRepresentation}{node.Header}\n{node.Body}".Trim());
             }
 
             foreach (var child in node.Children)
@@ -74,33 +102,9 @@ namespace ExamPaperParser.Number.Postprocessors
             return sb.ToString();
         }
 
-        private void VisitNode(NumberNode node, int level)
-        {
-            if (IsChoiceQuestion(node))
-            {
-                node.Content = $"{node.Content}\n{ConcatNodeContent(node)}".Trim();
-
-                node.ChildDifferentiator = null;
-                node.Children.Clear();
-            }
-
-            foreach (var child in node.Children)
-            {
-                VisitNode(child, level + 1);
-            }
-        }
-
-        private void VisitRoot(NumberRoot root)
-        {
-            foreach (var child in root.Children)
-            {
-                VisitNode(child, 0);
-            }
-        }
-
         public void Process(NumberRoot root)
         {
-            VisitRoot(root);
+            _numberNodeVisitor.Visit(root);
         }
     }
 }

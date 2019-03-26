@@ -30,17 +30,26 @@ namespace ExamPaperParser.Number.Extractors
 
         private IDecoratedNumberParser _decoratedNumberParser;
         private INumberManager _numberManager = new NumberManager(new SimpleNumberDifferentiator());
-        private List<IPostprocessor> _postprocessors = new List<IPostprocessor>
-        {
-            new ChoiceQuestionPostprocessor(),
-        };
+        private IEnumerable<IPostprocessor> _postprocessors;
 
         public NumberExtractor(
             IDecoratedNumberParser decoratedNumberParser,
             Regex titleBlackRegex)
+            : this(decoratedNumberParser, titleBlackRegex, new List<IPostprocessor>
+            {
+                new ChoiceQuestionPostprocessor(),
+                new BlacklistPostprocessor(new Regex(@"^【.*?(答案|解析|点评|试题).*?】|中小学教育网|转载.*?注明出处", RegexOptions.Compiled)),
+            })
+        { }
+
+        public NumberExtractor(
+            IDecoratedNumberParser decoratedNumberParser,
+            Regex titleBlackRegex,
+            IEnumerable<IPostprocessor> postprocessors)
         {
             _decoratedNumberParser = decoratedNumberParser;
             _titleBlackRegex = titleBlackRegex;
+            _postprocessors = postprocessors;
         }
 
         private string? ConsumeContentToSpaceOrEnd(ref IDataView data)
@@ -178,7 +187,7 @@ namespace ExamPaperParser.Number.Extractors
                             else if (lastNode != null)
                             {
                                 // If it's not title either, append it to node content
-                                lastNode.Content = $"{lastNode.Content}\n{paragraph.Content}".Trim();
+                                lastNode.Body = $"{lastNode.Body}\n{paragraph.Content}".Trim();
                             }
                         }
                         break;

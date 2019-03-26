@@ -31,9 +31,9 @@ namespace ExamPaperParser.Test.Number
         {
             var padding = string.Join("", Enumerable.Repeat("  ", level));
             _output.WriteLine($"{padding}- {node.DecoratedNumber.RawRepresentation}: {node.Header}");
-            if (!string.IsNullOrWhiteSpace(node.Content))
+            if (!string.IsNullOrWhiteSpace(node.Body))
             {
-                _output.WriteLine($"\n{node.Content}\n");
+                _output.WriteLine($"\n{node.Body}\n");
             }
 
             foreach (var child in node.Children)
