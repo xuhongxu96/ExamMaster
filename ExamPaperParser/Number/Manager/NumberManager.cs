@@ -138,7 +138,7 @@ namespace ExamPaperParser.Number.Manager
 
         public void SetAllowFirstNumberForDifferentatiators(IDictionary<string, int> allowFirstNumbers)
         {
-            _allowFirstNumberForDifferentiators = allowFirstNumbers;
+            _allowFirstNumberForDifferentiators = new Dictionary<string, int>(allowFirstNumbers);
         }
 
         public Dictionary<string, int> GetAllowFirstNumberForDifferentiators()
@@ -182,35 +182,8 @@ namespace ExamPaperParser.Number.Manager
             else if (_differentiatorLevelPropsMapping.TryGetValue(differentiator, out var levelProps)
                 && number == levelProps.MaxNumber + 1)
             {
-                if (levelProps.Level == _current.Level + 1)
-                {
-                    // Continue previous level
-                    AddNew(_current, decoratedNumber, differentiator, paragraphOrder);
-                }
-                else
-                {
-                    // Wrong level, fix it by going up level
-                    var currentDifferentiator = _current.Parent.ChildDifferentiator;
-                    if (currentDifferentiator != null)
-                    {
-                        _differentiatorSetInCurrentChain.Remove(currentDifferentiator);
-                        _differentiatorLevelPropsMapping.Remove(currentDifferentiator);
-                        _current.Parent.Children.Clear();
-                        if (_current.Parent is NumberNode numberNode)
-                        {
-                            _current = numberNode;
-                            return AddNumber(decoratedNumber, paragraphOrder);
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException();
-                        }
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException();
-                    }
-                }
+                // Continue previous level
+                AddNew(_current, decoratedNumber, differentiator, paragraphOrder);
             }
             else
             {

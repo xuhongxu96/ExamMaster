@@ -127,6 +127,10 @@ namespace ExamPaperParser.Number.Differentiators
                     return $"{left}{numberDifferentiator}{right}";
                 case DelimiterDecoratedNumber delimiterDecoratedNumber:
                     var delimiter = NormalizeDelimiter(delimiterDecoratedNumber.Delimiter);
+                    if (number.Number is ChineseNumber)
+                    {
+                        return $"{numberDifferentiator}";
+                    }
                     return $"{numberDifferentiator}{delimiter}";
                 case UndecoratedNumber undecoratedNumber:
                     return $"{numberDifferentiator}";

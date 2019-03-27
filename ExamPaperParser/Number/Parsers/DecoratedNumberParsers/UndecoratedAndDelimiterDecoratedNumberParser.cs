@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using ExamPaperParser.Base;
 using ExamPaperParser.DataView;
+using ExamPaperParser.Helpers;
 using ExamPaperParser.Number.Models.DecoratedNumbers;
 using ExamPaperParser.Number.Models.Numbers;
 using ExamPaperParser.Number.Parsers.NumberParsers;
@@ -13,6 +14,7 @@ namespace ExamPaperParser.Number.Parsers.DecoratedNumberParsers
     public class UndecoratedAndDelimiterDecoratedNumberParser : BaseDecoratedNumberParser
     {
         private static Regex delimiterRegex = new Regex(@"^[\s.,:)\]}>．。，、：）】]", RegexOptions.Compiled);
+        private static Regex beginWithAlphaRegex = new Regex(@"^[a-zA-Z]", RegexOptions.Compiled);
 
         public UndecoratedAndDelimiterDecoratedNumberParser(INumberParser numberParser) : base(numberParser)
         {
@@ -36,7 +38,13 @@ namespace ExamPaperParser.Number.Parsers.DecoratedNumberParsers
 
                 if (!(m = delimiterRegex.Match(data.CurrentView.ToString())).Success)
                 {
-                    if (number is ChineseNumber || number is RomanNumber)
+                    if (number is RomanNumber && data.CurrentView.Length > 0 && beginWithAlphaRegex.IsMatch(data.CurrentView.Slice(0, 1).ToString()))
+                    {
+                        continue;
+                    }
+
+                    if (number is ChineseNumber 
+                        && data.CurrentView.ToString().ReplaceBetween("[(（]", "[)）]").Length > 14)
                     {
                         continue;
                     }

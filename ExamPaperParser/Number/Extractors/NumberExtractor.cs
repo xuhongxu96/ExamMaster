@@ -26,30 +26,32 @@ namespace ExamPaperParser.Number.Extractors
     public class NumberExtractor : INumberExtractor
     {
         private Regex _spaceRegex = new Regex(@"(.*?)(\s+|$)", RegexOptions.Compiled);
-        private Regex _titleBlackRegex;
+        private Regex _blackParagraphRegex = new Regex(@"^【.*?(答案|解析|点评|试题).*?】|中小学教育网|转载.*?注明出处", RegexOptions.Compiled);
+        private Regex _titleBlackRegex = new Regex(@"答案", RegexOptions.Compiled);
 
         private IDecoratedNumberParser _decoratedNumberParser;
         private INumberManager _numberManager = new NumberManager(new SimpleNumberDifferentiator());
         private IEnumerable<IPostprocessor> _postprocessors;
 
-        public NumberExtractor(
-            IDecoratedNumberParser decoratedNumberParser,
-            Regex titleBlackRegex)
-            : this(decoratedNumberParser, titleBlackRegex, new List<IPostprocessor>
+        public NumberExtractor(IDecoratedNumberParser decoratedNumberParser)
+        {
+            _decoratedNumberParser = decoratedNumberParser;
+            _postprocessors = new List<IPostprocessor>
             {
                 new ChoiceQuestionPostprocessor(),
-                new BlacklistPostprocessor(new Regex(@"^【.*?(答案|解析|点评|试题).*?】|中小学教育网|转载.*?注明出处", RegexOptions.Compiled)),
                 new QuestionScorePostprocessor(),
-            })
-        { }
+            };
+        }
 
         public NumberExtractor(
             IDecoratedNumberParser decoratedNumberParser,
             Regex titleBlackRegex,
+            Regex blackParagraphRegex,
             IEnumerable<IPostprocessor> postprocessors)
         {
             _decoratedNumberParser = decoratedNumberParser;
             _titleBlackRegex = titleBlackRegex;
+            _blackParagraphRegex = blackParagraphRegex;
             _postprocessors = postprocessors;
         }
 
@@ -69,19 +71,32 @@ namespace ExamPaperParser.Number.Extractors
         private NumberNode? ConsumeNumberFromDataView(ref IDataView data, int paragraphOrder)
         {
             var backup = _numberManager.Save();
+            InvalidNumberException? exception = null;
 
             foreach (var result in _decoratedNumberParser.Consume(data))
             {
+                if (result.Result.Number.IntNumber > 50)
+                {
+                    continue;
+                }
+
                 try
                 {
                     var node = _numberManager.AddNumber(result.Result, paragraphOrder);
                     data = result.DataView;
+                    exception = null;
                     return node;
                 }
-                catch (InvalidNumberException)
+                catch (InvalidNumberException e)
                 {
+                    exception = e;
                     _numberManager.Load(backup);
                 }
+            }
+
+            if (exception != null)
+            {
+                throw new FormatException($"{paragraphOrder}: {data.CurrentView.ToString()}", exception);
             }
 
             return null;
@@ -91,18 +106,33 @@ namespace ExamPaperParser.Number.Extractors
         {
             var content = new StringBuilder();
 
-            var lastNode = ConsumeNumberFromDataView(ref data, paragraphOrder);
-            if (lastNode == null)
+            NumberNode lastNode;
+            try
             {
-                return null;
+                lastNode = ConsumeNumberFromDataView(ref data, paragraphOrder);
+                if (lastNode == null)
+                {
+                    return null;
+                }
+            }
+            catch (FormatException)
+            {
+                throw;
             }
 
             while (!data.EndOfStream)
             {
                 var currentContent = content.ToString();
 
-                NumberNode node;
-                if ((node = ConsumeNumberFromDataView(ref data, paragraphOrder)) != null)
+                NumberNode? node = null;
+                try
+                {
+                    node = ConsumeNumberFromDataView(ref data, paragraphOrder);
+                }
+                catch (FormatException)
+                { }
+
+                if (node != null)
                 {
                     lastNode.Header = currentContent.Trim();
                     lastNode = node;
@@ -138,8 +168,10 @@ namespace ExamPaperParser.Number.Extractors
                 || paragraph.Content.Length - paragraph.Content.TrimStart().Length > 2;
             var isBold = paragraph.Parts[0] is TextPart textPart && textPart.Style.IsBold == true;
             var isTextSizeLargeEnough = maxTextSize - paragraph.GetAverageTextSize() <= 4;
+            var hasAnswer = paragraph.Content.Contains("答案");
 
-            return isCenter && isBold && isTextSizeLargeEnough;
+            return (isCenter && isBold && isTextSizeLargeEnough)
+                || (hasAnswer && (isCenter || isBold));
         }
 
         private void Postprocess(NumberRoot root)
@@ -150,22 +182,53 @@ namespace ExamPaperParser.Number.Extractors
             }
         }
 
-        public IEnumerable<Tuple<string, NumberRoot>> Extract(ParsedFile file)
+        public IEnumerable<Tuple<string, NumberRoot, IList<FormatException>>> Extract(ParsedFile file)
         {
             NumberNode? lastNode = null;
             string lastTitle = string.Empty;
+            Dictionary<string, int>? lastAllowFirstNumbers = null;
+            IList<FormatException> exceptions = new List<FormatException>();
             _numberManager.Reset();
 
             var maxTextSize = file.GetMaxTextSize();
+
+            var skipToNextTitle = false;
+            var skipAppendingToBody = false;
 
             foreach (var part in file.Parts)
             {
                 switch (part)
                 {
                     case ParagraphPart paragraph:
-                        NumberNode? currentNode;
-                        if ((currentNode = ExtractFromParagraph(paragraph)) != null)
+                        var isTitle = IsTitle(paragraph, maxTextSize);
+                        if (isTitle)
                         {
+                            skipToNextTitle = false;
+                        }
+
+                        if (skipToNextTitle)
+                        {
+                            continue;
+                        }
+
+                        NumberNode? currentNode;
+                        try
+                        {
+                            currentNode = ExtractFromParagraph(paragraph);
+                        }
+                        catch (FormatException e)
+                        {
+                            if (!skipAppendingToBody)
+                            {
+                                exceptions.Add(e);
+                            }
+
+                            currentNode = null;
+                        }
+
+                        if (currentNode != null)
+                        {
+                            skipAppendingToBody = false;
                             lastNode = currentNode;
                         }
                         else
@@ -173,22 +236,42 @@ namespace ExamPaperParser.Number.Extractors
                             // If no number was parsed in paragraph, judge if it is a title
                             if (IsTitle(paragraph, maxTextSize))
                             {
-                                if (_numberManager.Root.ChildDifferentiator != null
-                                    && !_titleBlackRegex.IsMatch(lastTitle))
+                                skipAppendingToBody = false;
+
+                                if (_titleBlackRegex.IsMatch(paragraph.Content.Trim()))
+                                {
+                                    skipToNextTitle = true;
+                                    continue;
+                                }
+
+                                if (_numberManager.Root.ChildDifferentiator != null)
                                 {
                                     Postprocess(_numberManager.Root);
-                                    yield return Tuple.Create(lastTitle, _numberManager.Root);
+                                    lastAllowFirstNumbers = _numberManager.GetAllowFirstNumberForDifferentiators();
+                                    yield return Tuple.Create(lastTitle, _numberManager.Root, exceptions);
                                 }
 
                                 lastTitle = paragraph.Content.Trim();
-                                var allowFirstNumbers = _numberManager.GetAllowFirstNumberForDifferentiators();
+
+                                exceptions.Clear();
                                 _numberManager.Reset();
-                                _numberManager.SetAllowFirstNumberForDifferentatiators(allowFirstNumbers);
+                                if (lastAllowFirstNumbers != null)
+                                {
+                                    _numberManager.SetAllowFirstNumberForDifferentatiators(lastAllowFirstNumbers);
+                                }
                             }
                             else if (lastNode != null)
                             {
                                 // If it's not title either, append it to node content
-                                lastNode.Body = $"{lastNode.Body}\n{paragraph.Content}".Trim();
+                                if (_blackParagraphRegex.IsMatch(paragraph.Content.Trim()))
+                                {
+                                    skipAppendingToBody = true;
+                                }
+
+                                if (!skipAppendingToBody)
+                                {
+                                    lastNode.Body = $"{lastNode.Body}\n{paragraph.Content}".Trim();
+                                }
                             }
                         }
                         break;
@@ -201,7 +284,7 @@ namespace ExamPaperParser.Number.Extractors
                 && !_titleBlackRegex.IsMatch(lastTitle))
             {
                 Postprocess(_numberManager.Root);
-                yield return Tuple.Create(lastTitle, _numberManager.Root);
+                yield return Tuple.Create(lastTitle, _numberManager.Root, exceptions);
             }
         }
     }

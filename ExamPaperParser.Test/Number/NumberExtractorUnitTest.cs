@@ -20,7 +20,7 @@ namespace ExamPaperParser.Test.Number
 
         private static readonly UniversalNumberParser _numberParser = new UniversalNumberParser();
         private static readonly UniversalDecoratedNumberParser _decoratedNumberParser = new UniversalDecoratedNumberParser(_numberParser);
-        private static readonly NumberExtractor _extractor = new NumberExtractor(_decoratedNumberParser, new Regex(@"答案", RegexOptions.Compiled));
+        private static readonly NumberExtractor _extractor = new NumberExtractor(_decoratedNumberParser);
 
         public NumberExtractorUnitTest(ITestOutputHelper output)
         {
@@ -55,10 +55,15 @@ namespace ExamPaperParser.Test.Number
             using (var docxParser = new DocxParser(path))
             {
                 var doc = docxParser.Parse();
-                var results = _extractor.Extract(doc);
+                var results = _extractor.Extract(doc).ToList();
 
                 foreach (var result in results)
                 {
+                    foreach (var e in result.Item3)
+                    {
+                        _output.WriteLine($"{e.Message}\n{e.InnerException.Message}\n");
+                    }
+
                     _output.WriteLine($"******{result.Item1}******");
                     VisitRoot(result.Item2);
                 }
@@ -75,6 +80,12 @@ namespace ExamPaperParser.Test.Number
         public void Test2()
         {
             ParseDocx("test2.docx");
+        }
+
+        [Fact]
+        public void Test3()
+        {
+            ParseDocx("test3.docx");
         }
     }
 }

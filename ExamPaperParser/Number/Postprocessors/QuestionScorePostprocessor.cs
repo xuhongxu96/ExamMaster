@@ -30,17 +30,14 @@ namespace ExamPaperParser.Number.Postprocessors
                 var score = double.Parse(m.Groups["score"].Value);
                 node.Score = score;
             }
-
-            if (node.Score != 0)
+            else
             {
-                return true;
-            }
-
-            m = _currentScoreRegex.Match(node.Header);
-            if (m.Success)
-            {
-                var score = double.Parse(m.Groups["score"].Value);
-                node.Score = score;
+                m = _currentScoreRegex.Match(node.Header);
+                if (m.Success)
+                {
+                    var score = double.Parse(m.Groups["score"].Value);
+                    node.Score = score;
+                }
             }
 
             return true;
