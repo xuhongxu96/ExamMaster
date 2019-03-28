@@ -4,7 +4,7 @@ using System.Text;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Wordprocessing;
 
-namespace FormattedFileParser.Parsers.Docx.Helpers
+namespace FormattedFileParser.Parsers.Docx.InternalParsers
 {
     public static class OpenXmlTypeHelper
     {

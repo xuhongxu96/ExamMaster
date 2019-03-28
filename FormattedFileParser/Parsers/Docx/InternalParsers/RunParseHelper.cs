@@ -6,7 +6,7 @@ using System.Text;
 using FormattedFileParser.Models.Parts;
 using DocumentFormat.OpenXml;
 
-namespace FormattedFileParser.Parsers.Docx.Helpers
+namespace FormattedFileParser.Parsers.Docx.InternalParsers
 {
     public static class RunParseHelper
     {

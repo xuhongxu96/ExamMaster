@@ -87,16 +87,6 @@ namespace ExamPaperParser.Number.Manager
             return current;
         }
 
-        private bool CanContinueLevel(NumberNode current, BaseDecoratedNumber currentNumber, string differentiator)
-        {
-            if (current.DecoratedNumber.Number.IntNumber + 1 != currentNumber.Number.IntNumber)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         private void ContinueLevel(BaseDecoratedNumber currentNumber, string differentiator, int paragraphOrder)
         {
             if (_current == null)

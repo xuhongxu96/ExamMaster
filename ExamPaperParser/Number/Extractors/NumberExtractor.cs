@@ -26,7 +26,11 @@ namespace ExamPaperParser.Number.Extractors
     public class NumberExtractor : INumberExtractor
     {
         private Regex _spaceRegex = new Regex(@"(.*?)(\s+|$)", RegexOptions.Compiled);
-        private Regex _blackParagraphRegex = new Regex(@"^【.*?(答案|解析|点评|试题).*?】|中小学教育网|转载.*?注明出处", RegexOptions.Compiled);
+
+        private Regex _blackParagraphRegex 
+            = new Regex(@"(^【.*?(答案|解析|点评|试题).*?】|中小学教育网|转载.*?注明出处)"
+                + @"|(准考证号|答题卡|橡皮擦|本试题|本试卷|本卷)", RegexOptions.Compiled);
+
         private Regex _titleBlackRegex = new Regex(@"答案", RegexOptions.Compiled);
 
         private IDecoratedNumberParser _decoratedNumberParser;
@@ -168,10 +172,12 @@ namespace ExamPaperParser.Number.Extractors
                 || paragraph.Content.Length - paragraph.Content.TrimStart().Length > 2;
             var isBold = paragraph.Parts[0] is TextPart textPart && textPart.Style.IsBold == true;
             var isTextSizeLargeEnough = maxTextSize - paragraph.GetAverageTextSize() <= 4;
-            var hasAnswer = paragraph.Content.Contains("答案");
 
             return (isCenter && isBold && isTextSizeLargeEnough)
-                || (hasAnswer && (isCenter || isBold));
+                || (paragraph.Content.Contains("答案") && (isCenter || isBold))
+                || (isCenter
+                    && paragraph.Content.Trim().StartsWith("第")
+                    && paragraph.Content.Trim().Replace(" ", "").Length < 5);
         }
 
         private void Postprocess(NumberRoot root)
@@ -182,12 +188,12 @@ namespace ExamPaperParser.Number.Extractors
             }
         }
 
-        public IEnumerable<Tuple<string, NumberRoot, IList<FormatException>>> Extract(ParsedFile file)
+        public IEnumerable<Tuple<string, NumberRoot, List<FormatException>>> Extract(ParsedFile file)
         {
             NumberNode? lastNode = null;
             string lastTitle = string.Empty;
             Dictionary<string, int>? lastAllowFirstNumbers = null;
-            IList<FormatException> exceptions = new List<FormatException>();
+            var exceptions = new List<FormatException>();
             _numberManager.Reset();
 
             var maxTextSize = file.GetMaxTextSize();
@@ -200,6 +206,12 @@ namespace ExamPaperParser.Number.Extractors
                 switch (part)
                 {
                     case ParagraphPart paragraph:
+                        if (_blackParagraphRegex.IsMatch(paragraph.Content.Trim()))
+                        {
+                            skipAppendingToBody = true;
+                            continue;
+                        }
+
                         var isTitle = IsTitle(paragraph, maxTextSize);
                         if (isTitle)
                         {
@@ -248,7 +260,7 @@ namespace ExamPaperParser.Number.Extractors
                                 {
                                     Postprocess(_numberManager.Root);
                                     lastAllowFirstNumbers = _numberManager.GetAllowFirstNumberForDifferentiators();
-                                    yield return Tuple.Create(lastTitle, _numberManager.Root, exceptions);
+                                    yield return Tuple.Create(lastTitle, _numberManager.Root, exceptions.ToList());
                                 }
 
                                 lastTitle = paragraph.Content.Trim();
@@ -263,11 +275,6 @@ namespace ExamPaperParser.Number.Extractors
                             else if (lastNode != null)
                             {
                                 // If it's not title either, append it to node content
-                                if (_blackParagraphRegex.IsMatch(paragraph.Content.Trim()))
-                                {
-                                    skipAppendingToBody = true;
-                                }
-
                                 if (!skipAppendingToBody)
                                 {
                                     lastNode.Body = $"{lastNode.Body}\n{paragraph.Content}".Trim();
@@ -284,7 +291,7 @@ namespace ExamPaperParser.Number.Extractors
                 && !_titleBlackRegex.IsMatch(lastTitle))
             {
                 Postprocess(_numberManager.Root);
-                yield return Tuple.Create(lastTitle, _numberManager.Root, exceptions);
+                yield return Tuple.Create(lastTitle, _numberManager.Root, exceptions.ToList());
             }
         }
     }

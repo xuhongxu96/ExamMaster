@@ -14,5 +14,7 @@ namespace FormattedFileParser.Models.Parts.Paragraphs.Style
         public Indentation Indent { get; set; } 
 
         public Justification Justification { get; set; } 
+
+        public Numbering Numbering { get; set; }
     }
 }
