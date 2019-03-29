@@ -8,7 +8,7 @@ using DocumentFormat.OpenXml;
 
 namespace FormattedFileParser.Parsers.Docx.InternalParsers
 {
-    public static class RunParseHelper
+    public class RunParser
     {
         public static string? ParseRunTextElement(OpenXmlElement element)
         {
@@ -51,7 +51,7 @@ namespace FormattedFileParser.Parsers.Docx.InternalParsers
             };
         }
 
-        public static IEnumerable<IPart> ParseRun(Run run)
+        public IEnumerable<IPart> ParseRun(Run run)
         {
             TextStyle style;
             if (run.RunProperties == null)

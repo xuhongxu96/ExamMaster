@@ -6,21 +6,18 @@ namespace FormattedFileParser.Models.Parts.Paragraphs.Style
 {
     public enum NumberingStyle
     {
+        None,
         UpperLetter, LowerLetter, UpperRoman, LowerRoman,
         Decimal, DecimalEnclosedCircle, DecimalEnclosedFullstop, DecimalEnclosedParen, DecimalZero,
         DecimalFullWidth,
         ChineseCounting
     }
 
-    public class Numbering
+    public struct Numbering
     {
-        public Numbering(NumberingStyle style, int startFrom, string template, string suffix)
-        {
-            Style = style;
-            StartFrom = startFrom;
-            Template = template;
-            Suffix = suffix;
-        }
+        public int GroupId { get; set; }
+
+        public int Level { get; set; }
 
         public NumberingStyle Style { get; set; }
 

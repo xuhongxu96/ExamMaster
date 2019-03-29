@@ -13,6 +13,8 @@ namespace FormattedFileParser.Parsers.Docx.InternalParsers
 {
     public class ParagraphParser
     {
+        private readonly RunParser _runParser = new RunParser();
+
         private readonly MainDocumentPart _mainDocumentPart;
         private readonly NumberingDefinitionsPart _numberingDefinitionsPart;
         private readonly Dictionary<int, Dictionary<int, Models.Parts.Paragraphs.Style.Numbering>> _numberingStyleMapping
@@ -166,12 +168,13 @@ namespace FormattedFileParser.Parsers.Docx.InternalParsers
                             && level.LevelText?.Val?.HasValue == true)
                         {
                             var style = new Models.Parts.Paragraphs.Style.Numbering
-                            (
-                                startFrom: level.StartNumberingValue.Val.HasValue ? level.StartNumberingValue.Val.Value : 1,
-                                template: level.LevelText.Val.Value,
-                                suffix: ParseLevelSuffix(level.LevelSuffix),
-                                style: ParseNumberingFormat(level.NumberingFormat)
-                            );
+                            {
+                                Level = level.LevelIndex.Value,
+                                StartFrom = level.StartNumberingValue.Val.HasValue ? level.StartNumberingValue.Val.Value : 1,
+                                Template = level.LevelText.Val.Value,
+                                Suffix = ParseLevelSuffix(level.LevelSuffix),
+                                Style = ParseNumberingFormat(level.NumberingFormat),
+                            };
 
                             if (!abstractNumIdToStyle.TryGetValue(abstractNumId, out var dict))
                             {
@@ -193,15 +196,18 @@ namespace FormattedFileParser.Parsers.Docx.InternalParsers
                     var levelStyle = new Dictionary<int, Models.Parts.Paragraphs.Style.Numbering>(
                         abstractNumIdToStyle[num.AbstractNumId.Val.Value]);
 
+                    _numberingStyleMapping[num.NumberID] = levelStyle;
+
                     foreach (var item in num.ChildElements)
                     {
                         if (item is LevelOverride lvlOverride
                             && lvlOverride.LevelIndex?.HasValue == true)
                         {
+                            var numbering = new Models.Parts.Paragraphs.Style.Numbering();
+
                             if (lvlOverride.StartOverrideNumberingValue?.Val?.HasValue == true)
                             {
-                                levelStyle[lvlOverride.LevelIndex].StartFrom
-                                    = lvlOverride.StartOverrideNumberingValue.Val.Value;
+                                numbering.StartFrom = lvlOverride.StartOverrideNumberingValue.Val.Value;
                             }
 
                             var lvl = lvlOverride.Level;
@@ -209,32 +215,30 @@ namespace FormattedFileParser.Parsers.Docx.InternalParsers
                             {
                                 if (lvl.StartNumberingValue?.Val?.HasValue == true)
                                 {
-                                    levelStyle[lvlOverride.LevelIndex].StartFrom
+                                    numbering.StartFrom
                                         = lvlOverride.StartOverrideNumberingValue.Val.Value;
                                 }
 
                                 if (lvl.LevelSuffix?.Val?.HasValue == true)
                                 {
-                                    levelStyle[lvlOverride.LevelIndex].Suffix
-                                        = ParseLevelSuffix(lvl.LevelSuffix);
+                                    numbering.Suffix = ParseLevelSuffix(lvl.LevelSuffix);
                                 }
 
                                 if (lvl.LevelText?.Val?.HasValue == true)
                                 {
-                                    levelStyle[lvlOverride.LevelIndex].Template
-                                        = lvl.LevelText.Val.Value;
+                                    numbering.Template = lvl.LevelText.Val.Value;
                                 }
 
                                 if (lvl.NumberingFormat?.Val?.HasValue == true)
                                 {
-                                    levelStyle[lvlOverride.LevelIndex].Style
-                                        = ParseNumberingFormat(lvl.NumberingFormat);
+                                    numbering.Style = ParseNumberingFormat(lvl.NumberingFormat);
                                 }
                             }
-                        }
 
-                        _numberingStyleMapping[num.NumberID] = levelStyle;
+                            levelStyle[lvlOverride.LevelIndex] = numbering;
+                        }
                     }
+
                 }
             }
         }
@@ -250,12 +254,13 @@ namespace FormattedFileParser.Parsers.Docx.InternalParsers
                 {
                     if (dict.TryGetValue(level.Value, out var numbering))
                     {
+                        numbering.GroupId = numId.Value;
                         return numbering;
                     }
                 }
             }
 
-            return new Models.Parts.Paragraphs.Style.Numbering(NumberingStyle.Decimal, 1, "%1.", "");
+            return new Models.Parts.Paragraphs.Style.Numbering { Style = NumberingStyle.None };
         }
 
         public ParagraphStyle ParseParagraphProperties(ParagraphProperties paragraphProperties)
@@ -314,7 +319,7 @@ namespace FormattedFileParser.Parsers.Docx.InternalParsers
                 switch (element)
                 {
                     case Run run:
-                        parts.AddRange(RunParseHelper.ParseRun(run));
+                        parts.AddRange(_runParser.ParseRun(run));
                         break;
                     case Break _:
                         parts.Add(new TextPart { Content = "\n", Style = new TextStyle() });
