@@ -45,7 +45,7 @@ namespace ExamPaperParser.Number.Postprocessors
             var lastChoiceContent = NodeHelper.ConcatNodeContent(node.Children.Last(), false);
             if (lastChoiceContent.Length > 200)
             {
-                return new FormatException($"Too long choice content. Maybe there lacks a question number.\n{lastChoiceContent}");
+                return new FormatException($"Too long choice content. Maybe there lacks a question number\n{lastChoiceContent}");
             }
 
             return null;
