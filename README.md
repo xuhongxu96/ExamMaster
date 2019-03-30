@@ -10,6 +10,8 @@ Parse Chinese exam paper to structured questions.
 
 ### Parsed Result
 
+> Parser will give warnings if there exists some uncertainty / abnormal results.
+
 #### Warnings
 
 - Too long choice content. Maybe there lacks a question number:  

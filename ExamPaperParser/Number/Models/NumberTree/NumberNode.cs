@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using ExamPaperParser.Number.Models.DecoratedNumbers;
 
 namespace ExamPaperParser.Number.Models.NumberTree
 {
+    [DebuggerDisplay("Header = {Header}, Content = {Content}")]
     public class NumberNode : BaseNumberNode
     {
         public NumberNode(BaseNumberNode parent, BaseDecoratedNumber number, int paragraphOrder)
@@ -29,6 +31,8 @@ namespace ExamPaperParser.Number.Models.NumberTree
         public string Body { get; set; } = string.Empty;
 
         public double Score { get; set; } = 0.0;
+
+        public bool IsChoiceQuestion { get; set; } = false;
 
         public string SelectiveDescription { get; set; } = "";
 

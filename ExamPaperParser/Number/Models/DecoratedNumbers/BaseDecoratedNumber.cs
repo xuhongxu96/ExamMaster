@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using ExamPaperParser.Number.Models.Numbers;
 
 namespace ExamPaperParser.Number.Models.DecoratedNumbers
 {
+    [DebuggerDisplay("{RawRepresentation} ({Number})")]
     public class BaseDecoratedNumber
     {
         public BaseDecoratedNumber(BaseNumber number, string rawRepresentation)

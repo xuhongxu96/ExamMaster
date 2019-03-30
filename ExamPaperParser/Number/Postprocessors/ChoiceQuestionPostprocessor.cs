@@ -21,16 +21,16 @@ namespace ExamPaperParser.Number.Postprocessors
         protected override bool NumberNodeVisitor_OnVisited(NumberNode node, int level, out List<Exception> exceptions)
         {
             exceptions = new List<Exception>();
-            Exception? exception;
-            if (IsChoiceQuestion(node, out exception))
+            if (IsChoiceQuestion(node))
             {
+                var exception = CheckLastChoiceContent(node);
                 if (exception != null)
                 {
                     exceptions.Add(exception);
                 }
 
+                node.IsChoiceQuestion = true;
                 node.Body = $"{node.Body}\n{NodeHelper.ConcatNodeContent(node)}".Trim();
-
                 node.ChildDifferentiator = null;
                 node.Children.Clear();
 
@@ -51,9 +51,8 @@ namespace ExamPaperParser.Number.Postprocessors
             return null;
         }
 
-        private bool IsChoiceQuestion(NumberNode node, out Exception? e)
+        private bool IsChoiceQuestion(NumberNode node)
         {
-            e = null;
             if (node.Children.Count > 1)
             {
                 var firstChildNumber = node.Children.First().DecoratedNumber;
@@ -63,7 +62,6 @@ namespace ExamPaperParser.Number.Postprocessors
                         && alphabeticalNumber.IsHalfWidth
                         && !alphabeticalNumber.IsLower)
                     {
-                        e = CheckLastChoiceContent(node);
                         return true;
                     }
                 }
@@ -76,7 +74,6 @@ namespace ExamPaperParser.Number.Postprocessors
                 var index = data.CurrentView.IndexOf("的");
                 if (index == -1)
                 {
-                    e = null;
                     return false;
                 }
 
@@ -87,8 +84,6 @@ namespace ExamPaperParser.Number.Postprocessors
                     data = choiceCount.DataView;
                     if (_suffix.IsMatch(data.CurrentView.ToString()))
                     {
-                        e = CheckLastChoiceContent(node);
-
                         return true;
                     }
                 }
