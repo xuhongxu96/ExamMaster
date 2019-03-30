@@ -10,7 +10,7 @@ namespace FormattedFileParser.Test
         public void Parse()
         {
             var parser = new DocxParser("test1.docx");
-            var res = parser.Parse();
+            var res = parser.Parse(out var exceptions);
         }
     }
 }
