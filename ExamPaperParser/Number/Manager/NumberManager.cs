@@ -5,6 +5,7 @@ using System.Text;
 using ExamPaperParser.Number.Differentiators;
 using ExamPaperParser.Number.Manager.Exceptions;
 using ExamPaperParser.Number.Models.DecoratedNumbers;
+using ExamPaperParser.Number.Models.Numbers;
 using ExamPaperParser.Number.Models.NumberTree;
 
 namespace ExamPaperParser.Number.Manager
@@ -12,6 +13,7 @@ namespace ExamPaperParser.Number.Manager
     public class NumberManager : INumberManager
     {
         private INumberDifferentiator _numberDifferentiator;
+        private List<Type> _allowerNumberTypeToSpanParents;
 
         /// <summary>
         /// Props of level for each differentiator
@@ -33,6 +35,11 @@ namespace ExamPaperParser.Number.Manager
         public NumberManager(INumberDifferentiator numberDifferentiator)
         {
             _numberDifferentiator = numberDifferentiator;
+            _allowerNumberTypeToSpanParents = new List<Type>
+            {
+                typeof(ArabicNumber),
+                typeof(ChineseNumber),
+            };
         }
 
         public Backup Save()
@@ -172,8 +179,15 @@ namespace ExamPaperParser.Number.Manager
             else if (_differentiatorLevelPropsMapping.TryGetValue(differentiator, out var levelProps)
                 && number == levelProps.MaxNumber + 1)
             {
-                // Continue previous level
-                AddNew(_current, decoratedNumber, differentiator, paragraphOrder);
+                if (_allowerNumberTypeToSpanParents.Contains(decoratedNumber.Number.GetType()))
+                {
+                    // Continue previous level
+                    AddNew(_current, decoratedNumber, differentiator, paragraphOrder);
+                }
+                else
+                {
+                    throw new StartFromNonFirstNumberException(decoratedNumber);
+                }
             }
             else
             {
