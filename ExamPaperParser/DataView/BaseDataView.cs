@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace ExamPaperParser.DataView
 {
+    [DebuggerDisplay("CurrentView = {CurrentView}, Pos = {Position}")]
     public abstract class BaseDataView : IDataView
     {
         public int Position { get; set; }

@@ -7,7 +7,11 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
 {
     public class HalfWidthAlphabeticalNumberParser : BaseNumberParser
     {
-        protected override string MatchRegex => @"^[a-zA-Z]";
+        public HalfWidthAlphabeticalNumberParser(bool consumeFromStart = true) : base(consumeFromStart)
+        {
+        }
+
+        protected override string MatchRegex => @"[a-zA-Z]";
 
         protected override BaseNumber ConstructNumber(string rawNumber, int number)
         {

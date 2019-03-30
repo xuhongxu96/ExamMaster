@@ -11,23 +11,28 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
     {
         private IEnumerable<BaseNumberParser> _parsers;
 
-        public UniversalNumberParser()
+        public UniversalNumberParser(bool consumeFromStart = true)
         {
             _parsers = new List<BaseNumberParser>
             {
-                new HalfWidthArabicNumberParser(),
-                new FullWidthArabicNumberParser(),
-                new LowerRomanNumberParser(),
-                new UpperRomanNumberParser(),
-                new LowerChineseNumberParser(),
-                new UpperChineseNumberParser(),
-                new FullStopNumberParser(),
-                new CircledNumberParser(),
-                new ParenthesizedNumberParser(),
-                new ParenthesizedAlphabeticalNumberParser(),
-                new HalfWidthAlphabeticalNumberParser(),
-                new FullWidthAlphabeticalNumberParser(),
+                new HalfWidthArabicNumberParser(consumeFromStart),
+                new FullWidthArabicNumberParser(consumeFromStart),
+                new LowerRomanNumberParser(consumeFromStart),
+                new UpperRomanNumberParser(consumeFromStart),
+                new LowerChineseNumberParser(consumeFromStart),
+                new UpperChineseNumberParser(consumeFromStart),
+                new FullStopNumberParser(consumeFromStart),
+                new CircledNumberParser(consumeFromStart),
+                new ParenthesizedNumberParser(consumeFromStart),
+                new ParenthesizedAlphabeticalNumberParser(consumeFromStart),
+                new HalfWidthAlphabeticalNumberParser(consumeFromStart),
+                new FullWidthAlphabeticalNumberParser(consumeFromStart),
             };
+        }
+
+        public UniversalNumberParser(params BaseNumberParser[] numberParsers)
+        {
+            _parsers = numberParsers;
         }
 
         public UniversalNumberParser(IEnumerable<BaseNumberParser> numberParsers)

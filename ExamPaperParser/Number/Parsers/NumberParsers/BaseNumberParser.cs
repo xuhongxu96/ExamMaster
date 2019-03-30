@@ -16,9 +16,16 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
 
         protected Regex regex;
 
-        public BaseNumberParser()
+        public BaseNumberParser(bool consumeFromStart = true)
         {
-            regex = new Regex(MatchRegex, RegexOptions.Compiled);
+            if (consumeFromStart)
+            {
+                regex = new Regex($"^({MatchRegex})", RegexOptions.Compiled);
+            }
+            else
+            {
+                regex = new Regex(MatchRegex, RegexOptions.Compiled);
+            }
         }
 
         public IEnumerable<ParsedResult<BaseNumber>> Consume(IDataView data)

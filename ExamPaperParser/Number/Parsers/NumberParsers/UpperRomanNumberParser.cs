@@ -14,7 +14,11 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
     /// </summary>
     public class UpperRomanNumberParser : BaseNumberParser
     {
-        protected override string MatchRegex => @"^([\u2160-\u216FIXVLCDM]+)";
+        public UpperRomanNumberParser(bool consumeFromStart = true) : base(consumeFromStart)
+        {
+        }
+
+        protected override string MatchRegex => @"[\u2160-\u216FIXVLCDM]+";
 
         protected override BaseNumber ConstructNumber(string rawNumber, int number)
         {

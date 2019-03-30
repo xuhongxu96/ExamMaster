@@ -45,9 +45,9 @@ namespace FormattedFileParser.Processors
                         var orders = numberingAllocator.Allocate(numIndex.GroupId, numIndex.Level);
                         var finalRepr = def.Template;
 
-                        var matches = _placeholderRegex.Matches(def.Template);
-                        var hasError = false;
-                        foreach (Match m in matches)
+                        var m = _placeholderRegex.Match(def.Template);
+                        var hasError = !m.Success;
+                        while (m.Success)
                         {
                             var level = int.Parse(m.Value.Substring(1)) - 1;
                             var levelDef = file.NumberingManager.GetNumbering(numIndex.GroupId, level);
@@ -67,6 +67,8 @@ namespace FormattedFileParser.Processors
                             {
                                 break;
                             }
+
+                            m = m.NextMatch();
                         }
 
                         if (hasError)

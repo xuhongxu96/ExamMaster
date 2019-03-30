@@ -8,7 +8,11 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
 {
     public class LowerChineseNumberParser : BaseNumberParser
     {
-        protected override string MatchRegex => @"^[一二两三四五六七八九十百千万亿]+";
+        public LowerChineseNumberParser(bool consumeFromStart = true) : base(consumeFromStart)
+        {
+        }
+
+        protected override string MatchRegex => @"[一二两三四五六七八九十百千万亿]+";
 
         protected override BaseNumber ConstructNumber(string rawNumber, int number)
         {

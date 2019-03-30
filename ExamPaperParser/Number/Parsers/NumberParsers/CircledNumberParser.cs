@@ -7,7 +7,11 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
 {
     public class CircledNumberParser : BaseNumberParser
     {
-        protected override string MatchRegex => @"^[\u2460-\u2473]";
+        public CircledNumberParser(bool consumeFromStart = true) : base(consumeFromStart)
+        {
+        }
+
+        protected override string MatchRegex => @"[\u2460-\u2473]";
 
         protected override BaseNumber ConstructNumber(string rawNumber, int number)
         {

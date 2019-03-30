@@ -8,7 +8,11 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
 {
     public class ParenthesizedNumberParser : BaseNumberParser
     {
-        protected override string MatchRegex => @"^[\u2474-\u2487]";
+        public ParenthesizedNumberParser(bool consumeFromStart = true) : base(consumeFromStart)
+        {
+        }
+
+        protected override string MatchRegex => @"[\u2474-\u2487]";
 
         protected override BaseNumber ConstructNumber(string rawNumber, int number)
         {

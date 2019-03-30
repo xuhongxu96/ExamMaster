@@ -7,7 +7,11 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
 {
     public class FullStopNumberParser : BaseNumberParser
     {
-        protected override string MatchRegex => @"^[\u2488-\u249B]";
+        public FullStopNumberParser(bool consumeFromStart = true) : base(consumeFromStart)
+        {
+        }
+
+        protected override string MatchRegex => @"[\u2488-\u249B]";
 
         protected override BaseNumber ConstructNumber(string rawNumber, int number)
         {

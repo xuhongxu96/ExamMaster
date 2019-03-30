@@ -11,7 +11,11 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
     /// </summary>
     public class HalfWidthArabicNumberParser : BaseNumberParser
     {
-        protected override string MatchRegex => @"^[0-9]+";
+        public HalfWidthArabicNumberParser(bool consumeFromStart = true) : base(consumeFromStart)
+        {
+        }
+
+        protected override string MatchRegex => @"[0-9]+";
 
         protected override BaseNumber ConstructNumber(string rawNumber, int number)
         {

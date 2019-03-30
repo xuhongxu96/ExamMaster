@@ -9,7 +9,11 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
 {
     public class UpperChineseNumberParser : BaseNumberParser
     {
-        protected override string MatchRegex => @"^[壹贰叁弎肆伍陆柒捌玖拾佰仟萬亿]+";
+        public UpperChineseNumberParser(bool consumeFromStart = true) : base(consumeFromStart)
+        {
+        }
+
+        protected override string MatchRegex => @"[壹贰叁弎肆伍陆柒捌玖拾佰仟萬亿]+";
 
         protected override BaseNumber ConstructNumber(string rawNumber, int number)
         {

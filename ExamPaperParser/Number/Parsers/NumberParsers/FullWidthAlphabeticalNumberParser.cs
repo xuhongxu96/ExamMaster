@@ -7,7 +7,11 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
 {
     public class FullWidthAlphabeticalNumberParser : BaseNumberParser
     {
-        protected override string MatchRegex => @"^[\uFF21-\uFF3A\uFF41-\uFF5A]";
+        public FullWidthAlphabeticalNumberParser(bool consumeFromStart = true) : base(consumeFromStart)
+        {
+        }
+
+        protected override string MatchRegex => @"[\uFF21-\uFF3A\uFF41-\uFF5A]";
 
         protected override BaseNumber ConstructNumber(string rawNumber, int number)
         {

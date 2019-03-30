@@ -10,7 +10,11 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
     /// </summary>
     public class FullWidthArabicNumberParser : BaseNumberParser
     {
-        protected override string MatchRegex => @"^[\uFF10-\uFF19]+";
+        public FullWidthArabicNumberParser(bool consumeFromStart = true) : base(consumeFromStart)
+        {
+        }
+
+        protected override string MatchRegex => @"[\uFF10-\uFF19]+";
 
         protected override BaseNumber ConstructNumber(string rawNumber, int number)
         {

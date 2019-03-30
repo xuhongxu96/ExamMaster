@@ -29,5 +29,9 @@ namespace ExamPaperParser.Number.Models.NumberTree
         public string Body { get; set; } = string.Empty;
 
         public double Score { get; set; } = 0.0;
+
+        public string SelectiveDescription { get; set; } = "";
+
+        public int SelectCount { get; set; } = 0;
     }
 }

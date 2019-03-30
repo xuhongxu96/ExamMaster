@@ -7,7 +7,11 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
 {
     public class ParenthesizedAlphabeticalNumberParser : BaseNumberParser
     {
-        protected override string MatchRegex => @"^[\u249C-\u24B5]";
+        public ParenthesizedAlphabeticalNumberParser(bool consumeFromStart = true) : base(consumeFromStart)
+        {
+        }
+
+        protected override string MatchRegex => @"[\u249C-\u24B5]";
 
         protected override BaseNumber ConstructNumber(string rawNumber, int number)
         {

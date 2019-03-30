@@ -32,7 +32,9 @@ namespace ExamPaperParser.Test.Number
         private void VisitNode(NumberNode node, int level)
         {
             var padding = string.Join("", Enumerable.Repeat("  ", level));
-            _output.WriteLine($"{padding}-- {node.DecoratedNumber.RawRepresentation} <{node.Score} 分>: {node.Header}");
+            _output.WriteLine($"{padding}-- {node.DecoratedNumber.RawRepresentation} " +
+                $"<{node.Score} 分>: {node.Header}" +
+                $"{(node.SelectiveDescription != "" ? $" [{node.SelectiveDescription}:{node.SelectCount}]" : "")}");
             if (!string.IsNullOrWhiteSpace(node.Body))
             {
                 _output.WriteLine($"\n{node.Body}\n");
@@ -103,6 +105,12 @@ namespace ExamPaperParser.Test.Number
         public void Test4()
         {
             ParseDocx("test4.docx");
+        }
+
+        [Fact]
+        public void Test5()
+        {
+            ParseDocx("test5.docx");
         }
     }
 }

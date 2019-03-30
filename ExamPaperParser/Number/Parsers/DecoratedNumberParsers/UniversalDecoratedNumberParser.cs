@@ -12,6 +12,11 @@ namespace ExamPaperParser.Number.Parsers.DecoratedNumberParsers
     {
         private IEnumerable<BaseDecoratedNumberParser> _parsers;
 
+        public UniversalDecoratedNumberParser(params BaseDecoratedNumberParser[] parsers)
+        {
+            _parsers = parsers;
+        }
+
         public UniversalDecoratedNumberParser(IEnumerable<BaseDecoratedNumberParser> parsers)
         {
             _parsers = parsers;
