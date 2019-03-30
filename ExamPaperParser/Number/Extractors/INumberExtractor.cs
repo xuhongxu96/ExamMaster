@@ -8,6 +8,6 @@ namespace ExamPaperParser.Number.Extractors
 {
     public interface INumberExtractor
     {
-        IEnumerable<Tuple<string, NumberRoot, List<FormatException>>> Extract(ParsedFile file);
+        IEnumerable<Tuple<string, NumberRoot, List<Exception>>> Extract(ParsedFile file);
     }
 }

@@ -19,8 +19,10 @@ namespace ExamPaperParser.Number.Postprocessors
             new HalfWidthArabicNumberParser(false),
             new FullWidthArabicNumberParser(false));
 
-        protected override bool NumberNodeVisitor_OnVisited(NumberNode node, int level)
+        protected override bool NumberNodeVisitor_OnVisited(NumberNode node, int level, out List<Exception> exceptions)
         {
+            exceptions = new List<Exception>();
+
             var m = leftRegex.Match(node.Header);
             var data = new StringDataView(node.Header);
 

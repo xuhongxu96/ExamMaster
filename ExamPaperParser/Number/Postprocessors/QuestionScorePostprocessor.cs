@@ -12,8 +12,10 @@ namespace ExamPaperParser.Number.Postprocessors
         Regex _sumScoreRegex = new Regex(@"[共|总][计]?\s*(?<score>\d+(\.\d+)?)\s*分", RegexOptions.Compiled);
         Regex _childScoreRegex = new Regex(@"[每|各].*?[题]\s*(?<score>\d+(\.\d+)?)\s*分", RegexOptions.Compiled);
 
-        protected override bool NumberNodeVisitor_OnVisited(NumberNode node, int level)
+        protected override bool NumberNodeVisitor_OnVisited(NumberNode node, int level, out List<Exception> exceptions)
         {
+            exceptions = new List<Exception>();
+
             var m = _childScoreRegex.Match(node.Header);
             if (m.Success)
             {

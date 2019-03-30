@@ -23,7 +23,7 @@ namespace ExamPaperParser.Number.Postprocessors
                 }
             }
 
-            return sb.ToString();
+            return sb.ToString().Trim();
         }
     }
 }

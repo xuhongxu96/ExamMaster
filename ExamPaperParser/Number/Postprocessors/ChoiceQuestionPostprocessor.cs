@@ -18,10 +18,17 @@ namespace ExamPaperParser.Number.Postprocessors
         private readonly LowerChineseNumberParser _lowerChineseNumberParser = new LowerChineseNumberParser();
         private readonly Regex _suffix = new Regex(@"^[项组个][是为]", RegexOptions.Compiled);
 
-        protected override bool NumberNodeVisitor_OnVisited(NumberNode node, int level)
+        protected override bool NumberNodeVisitor_OnVisited(NumberNode node, int level, out List<Exception> exceptions)
         {
-            if (IsChoiceQuestion(node))
+            exceptions = new List<Exception>();
+            Exception? exception;
+            if (IsChoiceQuestion(node, out exception))
             {
+                if (exception != null)
+                {
+                    exceptions.Add(exception);
+                }
+
                 node.Body = $"{node.Body}\n{NodeHelper.ConcatNodeContent(node)}".Trim();
 
                 node.ChildDifferentiator = null;
@@ -33,8 +40,20 @@ namespace ExamPaperParser.Number.Postprocessors
             return true;
         }
 
-        private bool IsChoiceQuestion(NumberNode node)
+        private Exception? CheckLastChoiceContent(NumberNode node)
         {
+            var lastChoiceContent = NodeHelper.ConcatNodeContent(node.Children.Last(), false);
+            if (lastChoiceContent.Length > 200)
+            {
+                return new FormatException($"Too long choice content. Maybe there lacks a question number.\n{lastChoiceContent}");
+            }
+
+            return null;
+        }
+
+        private bool IsChoiceQuestion(NumberNode node, out Exception? e)
+        {
+            e = null;
             if (node.Children.Count > 1)
             {
                 var firstChildNumber = node.Children.First().DecoratedNumber;
@@ -44,6 +63,7 @@ namespace ExamPaperParser.Number.Postprocessors
                         && alphabeticalNumber.IsHalfWidth
                         && !alphabeticalNumber.IsLower)
                     {
+                        e = CheckLastChoiceContent(node);
                         return true;
                     }
                 }
@@ -56,6 +76,7 @@ namespace ExamPaperParser.Number.Postprocessors
                 var index = data.CurrentView.IndexOf("的");
                 if (index == -1)
                 {
+                    e = null;
                     return false;
                 }
 
@@ -66,6 +87,8 @@ namespace ExamPaperParser.Number.Postprocessors
                     data = choiceCount.DataView;
                     if (_suffix.IsMatch(data.CurrentView.ToString()))
                     {
+                        e = CheckLastChoiceContent(node);
+
                         return true;
                     }
                 }

@@ -54,6 +54,18 @@ namespace ExamPaperParser.Test.Number
             }
         }
 
+        private void WriteException(Exception e)
+        {
+            if (e.InnerException == null)
+            {
+                _output.WriteLine($"{e.Message}\n");
+            }
+            else
+            {
+                _output.WriteLine($"{e.InnerException.Message}\n{e.Message}\n");
+            }
+        }
+
         private void ParseDocx(string path)
         {
             var processor = new PrependNumberingToContentProcessor(new DefaultNumberingConverterRegistry());
@@ -65,7 +77,7 @@ namespace ExamPaperParser.Test.Number
 
                 foreach (var e in exceptions)
                 {
-                    _output.WriteLine($"{e.Message}\n{e.InnerException.Message}\n");
+                    WriteException(e);
                 }
 
                 var results = _extractor.Extract(doc).ToList();
@@ -74,7 +86,7 @@ namespace ExamPaperParser.Test.Number
                 {
                     foreach (var e in result.Item3)
                     {
-                        _output.WriteLine($"{e.Message}\n{e.InnerException.Message}\n");
+                        WriteException(e);
                     }
 
                     _output.WriteLine($"******{result.Item1}******");

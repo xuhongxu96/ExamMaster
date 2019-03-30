@@ -183,20 +183,23 @@ namespace ExamPaperParser.Number.Extractors
                     && paragraph.Content.Trim().Replace(" ", "").Length < 5);
         }
 
-        private void Postprocess(NumberRoot root)
+        private List<Exception> Postprocess(NumberRoot root)
         {
+            var exceptions = new List<Exception>();
             foreach (var processor in _postprocessors)
             {
-                processor.Process(root);
+                exceptions.AddRange(processor.Process(root));
             }
+
+            return exceptions;
         }
 
-        public IEnumerable<Tuple<string, NumberRoot, List<FormatException>>> Extract(ParsedFile file)
+        public IEnumerable<Tuple<string, NumberRoot, List<Exception>>> Extract(ParsedFile file)
         {
             NumberNode? lastNode = null;
             string lastTitle = string.Empty;
             Dictionary<string, int>? lastAllowFirstNumbers = null;
-            var exceptions = new List<FormatException>();
+            var exceptions = new List<Exception>();
             _numberManager.Reset();
 
             var maxTextSize = file.GetMaxTextSize();
@@ -261,7 +264,7 @@ namespace ExamPaperParser.Number.Extractors
 
                                 if (_numberManager.Root.ChildDifferentiator != null)
                                 {
-                                    Postprocess(_numberManager.Root);
+                                    exceptions.AddRange(Postprocess(_numberManager.Root));
                                     lastAllowFirstNumbers = _numberManager.GetAllowFirstNumberForDifferentiators();
                                     yield return Tuple.Create(lastTitle, _numberManager.Root, exceptions.ToList());
                                 }
@@ -293,7 +296,7 @@ namespace ExamPaperParser.Number.Extractors
             if (_numberManager.Root.ChildDifferentiator != null
                 && !_titleBlackRegex.IsMatch(lastTitle))
             {
-                Postprocess(_numberManager.Root);
+                exceptions.AddRange(Postprocess(_numberManager.Root));
                 yield return Tuple.Create(lastTitle, _numberManager.Root, exceptions.ToList());
             }
         }
