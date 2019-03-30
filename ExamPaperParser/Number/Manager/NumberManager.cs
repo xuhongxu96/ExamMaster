@@ -13,7 +13,6 @@ namespace ExamPaperParser.Number.Manager
     public class NumberManager : INumberManager
     {
         private INumberDifferentiator _numberDifferentiator;
-        private List<Type> _allowerNumberTypeToSpanParents;
 
         /// <summary>
         /// Props of level for each differentiator
@@ -35,11 +34,6 @@ namespace ExamPaperParser.Number.Manager
         public NumberManager(INumberDifferentiator numberDifferentiator)
         {
             _numberDifferentiator = numberDifferentiator;
-            _allowerNumberTypeToSpanParents = new List<Type>
-            {
-                typeof(ArabicNumber),
-                typeof(ChineseNumber),
-            };
         }
 
         public Backup Save()
@@ -179,7 +173,7 @@ namespace ExamPaperParser.Number.Manager
             else if (_differentiatorLevelPropsMapping.TryGetValue(differentiator, out var levelProps)
                 && number == levelProps.MaxNumber + 1)
             {
-                if (_allowerNumberTypeToSpanParents.Contains(decoratedNumber.Number.GetType()))
+                if (_numberDifferentiator.AllowedDifferentiatorToSpanParents.Contains(differentiator))
                 {
                     // Continue previous level
                     AddNew(_current, decoratedNumber, differentiator, paragraphOrder);

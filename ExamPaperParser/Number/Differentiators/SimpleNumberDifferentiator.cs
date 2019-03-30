@@ -95,6 +95,12 @@ namespace ExamPaperParser.Number.Differentiators
             { " ", "" },
         };
 
+        public IReadOnlyCollection<string> AllowedDifferentiatorToSpanParents { get; } = new List<string>
+        {
+            "一",
+            "1",
+        };
+
         private string NormalizeBracket(string bracket)
         {
             if (_normalizedBracketMapping.TryGetValue(bracket, out var normBracket))
