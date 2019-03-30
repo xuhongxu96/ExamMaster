@@ -15,11 +15,11 @@ namespace ExamPaperParser.Number.Postprocessors
                 sb.AppendLine($"{node.DecoratedNumber.RawRepresentation}{node.Header}\n{node.Body}".Trim());
             }
 
-            if (recursive)
+            if (root || recursive)
             {
                 foreach (var child in node.Children)
                 {
-                    sb.AppendLine(ConcatNodeContent(child, false));
+                    sb.AppendLine(ConcatNodeContent(child, false, recursive));
                 }
             }
 

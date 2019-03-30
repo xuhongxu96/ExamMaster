@@ -45,6 +45,7 @@ namespace ExamPaperParser.Number.Extractors
                 new ChoiceQuestionPostprocessor(),
                 new QuestionScorePostprocessor(),
                 new RemoveArticleNumberPostprocessor(),
+                new RemoveCommentNumberPostprocessor(),
             };
         }
 
