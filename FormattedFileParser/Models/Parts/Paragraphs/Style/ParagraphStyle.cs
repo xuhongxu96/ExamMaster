@@ -15,6 +15,6 @@ namespace FormattedFileParser.Models.Parts.Paragraphs.Style
 
         public Justification Justification { get; set; } 
 
-        public Numbering Numbering { get; set; }
+        public NumberingIndex? NumberingIndex { get; set; }
     }
 }

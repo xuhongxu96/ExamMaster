@@ -8,7 +8,9 @@ using ExamPaperParser.Number.Manager;
 using ExamPaperParser.Number.Models.NumberTree;
 using ExamPaperParser.Number.Parsers.DecoratedNumberParsers;
 using ExamPaperParser.Number.Parsers.NumberParsers;
+using FormattedFileParser.NumberingUtils.Converters;
 using FormattedFileParser.Parsers.Docx;
+using FormattedFileParser.Processors;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -52,9 +54,21 @@ namespace ExamPaperParser.Test.Number
 
         private void ParseDocx(string path)
         {
-            using (var docxParser = new DocxParser(path))
+            var processor = new PrependNumberingToContentProcessor();
+            processor.NumberingConverterRegistry
+                .Register(new DecimalNumberingConverter())
+                .Register(new ChineseCountingNumberingConverter());
+
+            using (var docxParser = new DocxParser(path, new List<IProcessor> { processor }))
             {
-                var doc = docxParser.Parse();
+                IList<Exception> exceptions;
+                var doc = docxParser.Parse(out exceptions);
+
+                foreach (var e in exceptions)
+                {
+                    _output.WriteLine($"{e.Message}\n{e.InnerException.Message}\n");
+                }
+
                 var results = _extractor.Extract(doc).ToList();
 
                 foreach (var result in results)

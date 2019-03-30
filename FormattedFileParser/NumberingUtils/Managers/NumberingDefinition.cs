@@ -2,23 +2,19 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace FormattedFileParser.Models.Parts.Paragraphs.Style
+namespace FormattedFileParser.NumberingUtils.Managers
 {
     public enum NumberingStyle
     {
-        None,
+        None, Other,
         UpperLetter, LowerLetter, UpperRoman, LowerRoman,
         Decimal, DecimalEnclosedCircle, DecimalEnclosedFullstop, DecimalEnclosedParen, DecimalZero,
         DecimalFullWidth,
-        ChineseCounting
+        ChineseCounting,
     }
 
-    public struct Numbering
+    public struct NumberingDefinition
     {
-        public int GroupId { get; set; }
-
-        public int Level { get; set; }
-
         public NumberingStyle Style { get; set; }
 
         public int StartFrom { get; set; }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using FormattedFileParser.Models.Parts.Paragraphs.Style;
-using FormattedFileParser.NumberingUtils.OrderUtils;
+using FormattedFileParser.NumberingUtils.Managers;
 
 namespace FormattedFileParser.NumberingUtils.Converters
 {

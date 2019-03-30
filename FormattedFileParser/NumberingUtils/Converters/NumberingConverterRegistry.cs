@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using FormattedFileParser.Models.Parts.Paragraphs.Style;
+using FormattedFileParser.NumberingUtils.Managers;
 
 namespace FormattedFileParser.NumberingUtils.Converters
 {
@@ -16,9 +17,14 @@ namespace FormattedFileParser.NumberingUtils.Converters
             return this;
         }
 
-        public string Convert(Numbering numbering, int number)
+        public string Convert(NumberingDefinition numberingDefinition, int number)
         {
-            return _converters[numbering.Style].Convert(number);
+            if (_converters.TryGetValue(numberingDefinition.Style, out var converter))
+            {
+                return converter.Convert(number);
+            }
+
+            throw new NotImplementedException($"{numberingDefinition.Style.ToString()} has not been supported");
         }
     }
 }
