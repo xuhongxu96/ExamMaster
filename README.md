@@ -16,7 +16,7 @@ Parse Chinese exam paper to structured questions.
 
 D．保护具体的专利是为了体现专利的公益性，与之不同的是，保护自然遗产、文化传统则是体现其排他性。
 
-**&lt;Actually, here lacks a question number, but the parser won't show this specific position and this tip here is just for description&gt;** 阅读下面的文字，完成8～10题。
+`&lt;Actually, here lacks a question number, but the parser won't show this specific position and this tip here is just for description&gt;` 阅读下面的文字，完成8～10题。
 
 科技的进步把人类的种种幻想变成现实，上古时代异想天开的“造人”神话，将在当代科学家手中实现，以人造肌肉为主要材料制成的“类人机器人”正款款向我们走来。
 
