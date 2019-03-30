@@ -54,10 +54,7 @@ namespace ExamPaperParser.Test.Number
 
         private void ParseDocx(string path)
         {
-            var processor = new PrependNumberingToContentProcessor();
-            processor.NumberingConverterRegistry
-                .Register(new DecimalNumberingConverter())
-                .Register(new ChineseCountingNumberingConverter());
+            var processor = new PrependNumberingToContentProcessor(new DefaultNumberingConverterRegistry());
 
             using (var docxParser = new DocxParser(path, new List<IProcessor> { processor }))
             {

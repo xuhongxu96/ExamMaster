@@ -10,6 +10,7 @@ namespace FormattedFileParser.NumberingUtils.Converters
         {
             Register(new DecimalNumberingConverter());
             Register(new ChineseCountingNumberingConverter());
+            Register(new DecimalEnclosedCircleNumberingConverter());
         }
     }
 }

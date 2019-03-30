@@ -22,7 +22,7 @@ namespace ExamPaperParser.Number.Postprocessors
         {
             if (IsChoiceQuestion(node))
             {
-                node.Body = $"{node.Body}\n{ConcatNodeContent(node)}".Trim();
+                node.Body = $"{node.Body}\n{NodeHelper.ConcatNodeContent(node)}".Trim();
 
                 node.ChildDifferentiator = null;
                 node.Children.Clear();
@@ -72,22 +72,6 @@ namespace ExamPaperParser.Number.Postprocessors
             }
 
             return false;
-        }
-
-        private string ConcatNodeContent(NumberNode node, bool root = true)
-        {
-            var sb = new StringBuilder();
-            if (!root)
-            {
-                sb.AppendLine($"{node.DecoratedNumber.RawRepresentation}{node.Header}\n{node.Body}".Trim());
-            }
-
-            foreach (var child in node.Children)
-            {
-                sb.AppendLine(ConcatNodeContent(child, false));
-            }
-
-            return sb.ToString();
         }
     }
 }
