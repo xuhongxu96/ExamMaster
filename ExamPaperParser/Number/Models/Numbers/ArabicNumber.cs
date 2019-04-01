@@ -11,6 +11,6 @@ namespace ExamPaperParser.Number.Models.Numbers
             IsHalfWidth = isHalfWidth;
         }
 
-        public bool IsHalfWidth { get; set; }
+        public bool IsHalfWidth { get; }
     }
 }

@@ -170,12 +170,20 @@ namespace ExamPaperParser.Number.Manager
                 // Continue this level
                 ContinueLevel(decoratedNumber, differentiator, paragraphOrder);
             }
-            else if (_differentiatorLevelPropsMapping.TryGetValue(differentiator, out var levelProps)
-                && number == levelProps.MaxNumber + 1)
+            else if (_differentiatorLevelPropsMapping.TryGetValue(differentiator, out var levelProps))
+                // && number == levelProps.MaxNumber + 1)
             {
                 if (_numberDifferentiator.AllowedDifferentiatorToSpanParents.Contains(differentiator))
                 {
                     // Continue previous level
+                    AddNew(_current, decoratedNumber, differentiator, paragraphOrder);
+                }
+                else if (number == 1
+                    || (_allowFirstNumberForDifferentiators.TryGetValue(differentiator, out var maxNumber)
+                    && number == maxNumber))
+                {
+                    // Don't allow to span parents, then check if it's a new level.
+                    // If so, add new level
                     AddNew(_current, decoratedNumber, differentiator, paragraphOrder);
                 }
                 else

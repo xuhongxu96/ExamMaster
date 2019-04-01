@@ -42,10 +42,13 @@ namespace ExamPaperParser.Number.Postprocessors
 
         private Exception? CheckLastChoiceContent(NumberNode node)
         {
-            var lastChoiceContent = NodeHelper.ConcatNodeContent(node.Children.Last(), false);
-            if (lastChoiceContent.Length > 200)
+            if (node.Children.Any())
             {
-                return new FormatException($"Too long choice content. Maybe there lacks a question number\n{lastChoiceContent}");
+                var lastChoiceContent = NodeHelper.ConcatNodeContent(node.Children.Last(), false);
+                if (lastChoiceContent.Length > 200)
+                {
+                    return new FormatException($"Too long choice content. Maybe there lacks a question number\n{lastChoiceContent}");
+                }
             }
 
             return null;

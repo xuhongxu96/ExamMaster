@@ -11,6 +11,6 @@ namespace ExamPaperParser.Number.Models.Numbers
             IsLower = isLower;
         }
 
-        public bool IsLower { get; set; }
+        public bool IsLower { get; }
     }
 }

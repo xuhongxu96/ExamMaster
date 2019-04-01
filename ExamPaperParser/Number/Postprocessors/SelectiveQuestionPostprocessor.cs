@@ -11,8 +11,8 @@ namespace ExamPaperParser.Number.Postprocessors
 {
     public class SelectiveQuestionPostprocessor : BaseVisitNodePostprocessor
     {
-        private static Regex leftRegex = new Regex(@"[(\[{<（【].*?选", RegexOptions.Compiled);
-        private static Regex rightRegex = new Regex(@"[题空组个道项]+([^分]*?)[)\]}>）】]", RegexOptions.Compiled);
+        private static Regex leftRegex = new Regex(@"[(\[{<（【请从].*?选", RegexOptions.Compiled);
+        private static Regex rightRegex = new Regex(@"[类题空组个道项]+([^分]*?)[，,。)\]}>）】]", RegexOptions.Compiled);
 
         private UniversalNumberParser _numberParser = new UniversalNumberParser(
             new LowerChineseNumberParser(false),

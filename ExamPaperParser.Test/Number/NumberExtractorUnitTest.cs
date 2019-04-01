@@ -124,5 +124,11 @@ namespace ExamPaperParser.Test.Number
         {
             ParseDocx("test5.docx");
         }
+
+        [Fact]
+        public void Test6()
+        {
+            ParseDocx("test6.docx");
+        }
     }
 }

@@ -27,6 +27,7 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
                 new ParenthesizedAlphabeticalNumberParser(consumeFromStart),
                 new HalfWidthAlphabeticalNumberParser(consumeFromStart),
                 new FullWidthAlphabeticalNumberParser(consumeFromStart),
+                new ChineseIdeographNumberParser(consumeFromStart),
             };
         }
 
