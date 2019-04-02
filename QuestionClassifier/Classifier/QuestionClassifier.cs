@@ -9,10 +9,13 @@ namespace QuestionClassifier.Classifier
     {
         private readonly WildcardRuleEngine _ruleEngine = new WildcardRuleEngine();
 
-        public QuestionClassifier(string classification)
+        public QuestionClassifier(string dimension, string classification)
         {
+            Dimension = dimension;
             Classification = classification;
         }
+
+        public string Dimension { get; set; }
 
         public string Classification { get; set; }
 
@@ -20,17 +23,13 @@ namespace QuestionClassifier.Classifier
 
         public List<string> BlacklistRules { get; } = new List<string>();
 
-        public bool IsInThisClassification(string query, out RuleContribution? ruleContribution)
+        public bool IsInThisClassification(string query, out string? matchedRule)
         {
             foreach (var rule in BlacklistRules)
             {
                 if (_ruleEngine.IsMatch(rule, query))
                 {
-                    ruleContribution = new RuleContribution
-                    {
-                        IsBlacklist = true,
-                        Rule = rule,
-                    };
+                    matchedRule = rule;
                     return false;
                 }
             }
@@ -39,16 +38,12 @@ namespace QuestionClassifier.Classifier
             {
                 if (_ruleEngine.IsMatch(rule, query))
                 {
-                    ruleContribution = new RuleContribution
-                    {
-                        IsBlacklist = false,
-                        Rule = rule,
-                    };
+                    matchedRule = rule;
                     return true;
                 }
             }
 
-            ruleContribution = null;
+            matchedRule = null;
             return false;
         }
     }

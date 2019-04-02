@@ -9,25 +9,29 @@ namespace QuestionClassifier.Classifier
     {
         public List<QuestionClassifier> Classifiers { get; } = new List<QuestionClassifier>();
 
-        public string Classify(string query, out RuleContribution? ruleContribution)
+        public IEnumerable<ClassificationResult> Classify(string query)
         {
-            var multiclass = new Dictionary<string, RuleContribution?>();
             foreach (var classifier in Classifiers)
             {
-                if (classifier.IsInThisClassification(query, out var outRuleContribution))
+                if (classifier.IsInThisClassification(query, out var matchedRule))
                 {
-                    multiclass[classifier.Classification] = outRuleContribution;
+                    yield return new ClassificationResult
+                    {
+                        IsMatched = true,
+                        Classification = classifier.Classification,
+                        Rule = matchedRule,
+                    };
+                }
+                else
+                {
+                    yield return new ClassificationResult
+                    {
+                        IsMatched = false,
+                        Classification = classifier.Classification,
+                        Rule = matchedRule,
+                    };
                 }
             }
-
-            if (multiclass.Count == 1)
-            {
-                var result = multiclass.Single();
-                ruleContribution = result.Value;
-                return result.Key;
-            }
-
-            throw new MulticlassException(multiclass);
         }
     }
 }

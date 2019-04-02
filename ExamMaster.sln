@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestionClassifier", "QuestionClassifier\QuestionClassifier.csproj", "{87D2FD5C-A38B-4599-90B2-3DF14D2E0AB1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExamMaster.Wpf", "ExamMaster.Wpf\ExamMaster.Wpf.csproj", "{48FD7C24-C287-4D50-803D-CFE3A8D3F66A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +46,10 @@ Global
 		{87D2FD5C-A38B-4599-90B2-3DF14D2E0AB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87D2FD5C-A38B-4599-90B2-3DF14D2E0AB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87D2FD5C-A38B-4599-90B2-3DF14D2E0AB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48FD7C24-C287-4D50-803D-CFE3A8D3F66A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48FD7C24-C287-4D50-803D-CFE3A8D3F66A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48FD7C24-C287-4D50-803D-CFE3A8D3F66A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48FD7C24-C287-4D50-803D-CFE3A8D3F66A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
