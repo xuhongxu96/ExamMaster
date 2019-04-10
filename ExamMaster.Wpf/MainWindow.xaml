@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ExamMaster.Wpf"
+        xmlns:v="clr-namespace:ExamMaster.Wpf.ViewModels"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
 
@@ -35,8 +36,12 @@
             </Grid.ColumnDefinitions>
 
             <Label Content="试卷目录" />
-            <TextBox Grid.Column="1" />
-            <Button Grid.Column="2" Content="浏览" />
+            <TextBox Grid.Column="1" DataContext="{Binding FileList}">
+                <TextBox.Text>
+                    <Binding Path="DirectoryPath" Mode="TwoWay" />
+                </TextBox.Text>
+            </TextBox>
+            <Button Grid.Column="2" Content="浏览" Click="BrowseButton_Click" />
         </Grid>
 
         <Grid Grid.Row="1">
@@ -66,7 +71,10 @@
                 </Grid.ColumnDefinitions>
 
                 <GroupBox Header="试卷列表">
-                    <ListView />
+                    <ListView DataContext="{Binding FileList}"
+                              ItemsSource="{Binding DocxFiles}"
+                              IsSynchronizedWithCurrentItem="True">
+                    </ListView>
                 </GroupBox>
 
                 <GridSplitter Grid.Column="1"
