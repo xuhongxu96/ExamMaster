@@ -122,42 +122,46 @@ namespace ExamMaster.Wpf
 
             GC.Collect();
 
-            await Task.Run(() =>
+            using (var parser = new DocxParser(filePath, _processors))
             {
-                using (var parser = new DocxParser(filePath, _processors))
+                (var doc, var parseExceptions) = await Task.Run(() =>
                 {
-                    ParsedFile doc;
-                    {
-                        doc = parser.Parse(out var exceptions);
-                        foreach (var exception in exceptions)
-                        {
-                            documentModel.Exceptions.Add(exception);
-                        }
-                    }
+                    var doc = parser.Parse(out var exceptions);
+                    return (doc, exceptions);
+                });
 
-                    foreach (var item in _extractor.Extract(doc))
-                    {
-                        (var sectionName, var questionRoot, var exceptions) = item;
-
-                        foreach (var exception in exceptions)
-                        {
-                            documentModel.Exceptions.Add(exception);
-                        }
-
-                        var section = new DocumentSection
-                        {
-                            Name = sectionName,
-                        };
-
-                        foreach (var question in ConvertNumberRootToQuestions(questionRoot))
-                        {
-                            section.Questions.Add(question);
-                        }
-
-                        documentModel.Sections.Add(section);
-                    }
+                foreach (var exception in parseExceptions)
+                {
+                    documentModel.Exceptions.Add(exception);
                 }
-            });
+
+                var results = await Task.Run(() =>
+                {
+                    return _extractor.Extract(doc).ToArray();
+                });
+
+                foreach (var result in results)
+                {
+                    (var sectionName, var questionRoot, var extractExceptions) = result;
+
+                    foreach (var exception in extractExceptions)
+                    {
+                        documentModel.Exceptions.Add(exception);
+                    }
+
+                    var section = new DocumentSection
+                    {
+                        Name = sectionName,
+                    };
+
+                    foreach (var question in ConvertNumberRootToQuestions(questionRoot))
+                    {
+                        section.Questions.Add(question);
+                    }
+
+                    documentModel.Sections.Add(section);
+                }
+            }
         }
 
         private async void ParseButton_Click(object sender, RoutedEventArgs e)
