@@ -8,4 +8,9 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ExamPaperParser\ExamPaperParser.csproj" />
+    <ProjectReference Include="..\QuestionClassifier\QuestionClassifier.csproj" />
+  </ItemGroup>
+
 </Project>

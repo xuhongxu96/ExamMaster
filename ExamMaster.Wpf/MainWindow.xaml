@@ -36,7 +36,7 @@
             </Grid.ColumnDefinitions>
 
             <Label Content="试卷目录" />
-            <TextBox Grid.Column="1" DataContext="{Binding FileList}">
+            <TextBox Grid.Column="1" DataContext="{Binding DocumentList}">
                 <TextBox.Text>
                     <Binding Path="DirectoryPath" Mode="TwoWay" />
                 </TextBox.Text>
@@ -51,7 +51,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Button Content="开始解析" />
+            <Button Content="开始解析" Click="ParseButton_Click" />
             <Button Grid.Column="1" Content="分类管理器" />
             <Button Grid.Column="2" Content="开始分类" />
         </Grid>
@@ -63,7 +63,7 @@
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
 
-            <Grid>
+            <Grid DataContext="{Binding DocumentList}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -71,21 +71,38 @@
                 </Grid.ColumnDefinitions>
 
                 <GroupBox Header="试卷列表">
-                    <ListView DataContext="{Binding FileList}"
-                              ItemsSource="{Binding DocxFiles}"
-                              IsSynchronizedWithCurrentItem="True">
-                    </ListView>
+                    <ListView ItemsSource="{Binding Documents}"
+                              DisplayMemberPath="RelativePath"
+                              IsSynchronizedWithCurrentItem="True" />
                 </GroupBox>
 
                 <GridSplitter Grid.Column="1"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Stretch"
                     ShowsPreview="True"
-                    Width="5"
-                    />
+                    Width="5" />
 
                 <GroupBox Grid.Column="2" Header="题目列表">
-                    <TreeView />
+                    <TreeView DataContext="{Binding Documents}"
+                              ItemsSource="{Binding Sections}">
+
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}">
+                                <Setter Property="IsExpanded" Value="True" />
+                            </Style>
+                        </TreeView.ItemContainerStyle>
+
+                        <TreeView.Resources>
+                            <HierarchicalDataTemplate DataType="{x:Type v:DocumentSection}" ItemsSource="{Binding Questions}">
+                                <TextBlock Text="{Binding Name}" />
+                            </HierarchicalDataTemplate>
+
+                            <HierarchicalDataTemplate DataType="{x:Type v:Question}" ItemsSource="{Binding Questions}">
+                                <TextBlock Text="{Binding Header}" />
+                            </HierarchicalDataTemplate>
+                        </TreeView.Resources>
+
+                    </TreeView>
                 </GroupBox>
             </Grid>
 
@@ -93,8 +110,7 @@
                  HorizontalAlignment="Center"
                  VerticalAlignment="Stretch"
                  ShowsPreview="True"
-                 Width="5"
-                 />
+                 Width="5" />
 
             <Grid Grid.Column="2">
                 <TextBlock Text="题目详情" />

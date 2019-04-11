@@ -209,7 +209,7 @@ namespace FormattedFileParser.Parsers.Docx.InternalParsers
                                 if (lvl.StartNumberingValue?.Val?.HasValue == true)
                                 {
                                     def.StartFrom
-                                        = lvlOverride.StartOverrideNumberingValue.Val.Value;
+                                        = lvl.StartNumberingValue.Val.Value;
                                 }
 
                                 if (lvl.LevelSuffix?.Val?.HasValue == true)

@@ -61,7 +61,6 @@ namespace ExamPaperParser.Number.Manager
 
             Root = new NumberRoot();
             _current = null;
-
             GC.Collect();
         }
 

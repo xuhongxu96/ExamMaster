@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ExamMaster.Wpf.ViewModels
 {
-    public class FileList : INotifyPropertyChanged
+    public class DocumentList : INotifyPropertyChanged
     {
         private string _directoryPath = "";
         public string DirectoryPath
@@ -20,8 +20,13 @@ namespace ExamMaster.Wpf.ViewModels
             }
         }
 
-        public ObservableCollection<string> DocxFiles { get; } = new ObservableCollection<string>();
+        public ObservableCollection<DocumentModel> Documents { get; } = new ObservableCollection<DocumentModel>();
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public void Notify(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
