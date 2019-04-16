@@ -13,8 +13,8 @@ namespace ExamPaperParser.Number.Parsers.DecoratedNumberParsers
 {
     public class BracketDecoratedNumberParser : BaseDecoratedNumberParser
     {
-        private static Regex leftBracketRegex = new Regex(@"^[(\[{<（【]", RegexOptions.Compiled);
-        private static Regex rightBracketRegex = new Regex(@"^[)\]}>）】]", RegexOptions.Compiled);
+        private static Regex leftBracketRegex = new Regex(@"^[(\[{<（【]\s*", RegexOptions.Compiled);
+        private static Regex rightBracketRegex = new Regex(@"^\s*[)\]}>）】]", RegexOptions.Compiled);
 
         public BracketDecoratedNumberParser(INumberParser numberParser) : base(numberParser)
         {
@@ -36,7 +36,7 @@ namespace ExamPaperParser.Number.Parsers.DecoratedNumberParsers
             }
 
             data = data.CloneByDelta(m.Index + m.Length);
-            left = m.Value;
+            left = m.Value.Trim();
 
             foreach (var numberResult in ConsumeNumber(data))
             {
@@ -49,7 +49,7 @@ namespace ExamPaperParser.Number.Parsers.DecoratedNumberParsers
                 }
 
                 data = data.CloneByDelta(m.Index + m.Length);
-                var right = m.Value;
+                var right = m.Value.Trim();
 
                 yield return new ParsedResult<BaseDecoratedNumber>(
                     result: new BracketDecoratedNumber(number, left + number.RawNumber + right, left, right),

@@ -54,9 +54,9 @@ namespace ExamPaperParser.Number.Differentiators
                         return "壹";
                     }
                 case CircledNumber _:
-                    return "Circle 1";
+                    return "CIRCLE 1";
                 case FullStopNumber _:
-                    return "1.";
+                    return "1";
                 case ParenthesizedNumber _:
                     return "(1)";
                 case ParenthesizedAlphabeticalNumber parenthesizedAlphabeticalNumber:
@@ -85,14 +85,16 @@ namespace ExamPaperParser.Number.Differentiators
 
         private Dictionary<string, string> _normalizedDelimiterMapping = new Dictionary<string, string>
         {
-            { "）", ")" },
-            { "】", "]" },
-            { "。", "." },
-            { "，", "," },
+            { " ", "" },
             { "．", "" },
             { ".", "" },
+            { "。", "" },
+            { ",", "" },
+            { "，", "" },
+            { "、", "" },
+            { "）", ")" },
+            { "】", "]" },
             { "：", ":" },
-            { " ", "" },
         };
 
         public IReadOnlyCollection<string> AllowedDifferentiatorToSpanParents { get; } = new List<string>
@@ -137,9 +139,9 @@ namespace ExamPaperParser.Number.Differentiators
                     {
                         return $"{numberDifferentiator}";
                     }
-                    return $"{numberDifferentiator}{delimiter}";
+                    return $"{numberDifferentiator}{delimiter}".ToUpper();
                 case UndecoratedNumber undecoratedNumber:
-                    return $"{numberDifferentiator}";
+                    return $"{numberDifferentiator}".ToUpper();
                 default:
                     return string.Empty;
             }

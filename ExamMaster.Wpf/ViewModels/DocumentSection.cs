@@ -8,7 +8,7 @@ namespace ExamMaster.Wpf.ViewModels
 {
     public class DocumentSection : INotifyPropertyChanged
     {
-        private string _name = "";
+        private string _name;
         public string Name
         {
             get => _name;
@@ -19,8 +19,14 @@ namespace ExamMaster.Wpf.ViewModels
             }
         }
 
-        public ObservableCollection<Question> Questions { get; } = new ObservableCollection<Question>();
+        public ObservableCollection<Question> Questions { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public DocumentSection(string name, IEnumerable<Question> questions)
+        {
+            _name = name;
+            Questions = new ObservableCollection<Question>(questions);
+        }
     }
 }

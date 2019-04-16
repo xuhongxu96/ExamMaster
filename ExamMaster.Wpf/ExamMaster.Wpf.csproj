@@ -9,8 +9,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Controls\QuestionDetails.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ExamPaperParser\ExamPaperParser.csproj" />
     <ProjectReference Include="..\QuestionClassifier\QuestionClassifier.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Controls\QuestionDetails.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
 </Project>

@@ -11,7 +11,7 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
     public abstract class BaseNumberParser : INumberParser
     {
         protected abstract string MatchRegex { get; }
-        protected abstract int ParseRawNumber(string rawNumber);
+        protected abstract int? ParseRawNumber(string rawNumber);
         protected abstract BaseNumber ConstructNumber(string rawNumber, int number);
 
         protected Regex regex;
@@ -28,7 +28,7 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
             }
         }
 
-        public IEnumerable<ParsedResult<BaseNumber>> Consume(IDataView data)
+        public virtual IEnumerable<ParsedResult<BaseNumber>> Consume(IDataView data)
         {
             if (data.EndOfStream)
             {
@@ -42,8 +42,15 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
             }
 
             var rawNumber = m.Value;
+            var number = ParseRawNumber(rawNumber);
+
+            if (!number.HasValue)
+            {
+                yield break;
+            }
+
             yield return new ParsedResult<BaseNumber>(
-                result: ConstructNumber(rawNumber, ParseRawNumber(rawNumber)),
+                result: ConstructNumber(rawNumber, number.Value),
                 dataView: data.CloneByDelta(m.Index + m.Length));
         }
     }

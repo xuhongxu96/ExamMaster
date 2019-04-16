@@ -173,7 +173,7 @@ namespace FormattedFileParser.Parsers.Docx.InternalParsers
                         {
                             var def = new NumberingDefinition
                             {
-                                StartFrom = level.StartNumberingValue.Val.HasValue ? level.StartNumberingValue.Val.Value : 1,
+                                StartFrom = level.StartNumberingValue?.Val?.HasValue == true ? level.StartNumberingValue.Val.Value : 1,
                                 Template = level.LevelText.Val.Value,
                                 Suffix = ParseLevelSuffix(level.LevelSuffix),
                                 Style = ParseNumberingFormat(level.NumberingFormat),
@@ -261,8 +261,13 @@ namespace FormattedFileParser.Parsers.Docx.InternalParsers
             return null;
         }
 
-        public ParagraphStyle ParseParagraphProperties(ParagraphProperties paragraphProperties)
+        public ParagraphStyle ParseParagraphProperties(ParagraphProperties? paragraphProperties)
         {
+            if (paragraphProperties == null)
+            {
+                return new ParagraphStyle();
+            }
+
             return new ParagraphStyle
             {
                 Indent = ParseIndentation(paragraphProperties.Indentation),

@@ -9,6 +9,7 @@ namespace FormattedFileParser.NumberingUtils.Converters
         public DefaultNumberingConverterRegistry()
         {
             Register(new DecimalNumberingConverter());
+            Register(new UpperLetterNumberingConverter());
             Register(new ChineseCountingNumberingConverter());
             Register(new DecimalEnclosedCircleNumberingConverter());
         }

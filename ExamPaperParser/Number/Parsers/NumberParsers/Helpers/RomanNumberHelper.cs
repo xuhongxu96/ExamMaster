@@ -61,11 +61,12 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers.Helpers
 
         public static int RomanToInt(string roman, bool convertToAscii = true)
         {
+            roman = roman.ToLower();
+
             if (convertToAscii)
                 roman = RomanToAscii(roman);
 
             if (roman.Length == 0) return 0;
-            roman = roman.ToLower();
 
             int total = 0;
             int last_value = 0;

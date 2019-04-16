@@ -18,7 +18,7 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
             return new ParenthesizedAlphabeticalNumber(rawNumber, number);
         }
 
-        protected override int ParseRawNumber(string rawNumber)
+        protected override int? ParseRawNumber(string rawNumber)
         {
             return rawNumber[0] - '\u249C' + 1;
         }

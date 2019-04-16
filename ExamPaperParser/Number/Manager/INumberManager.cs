@@ -24,6 +24,8 @@ namespace ExamPaperParser.Number.Manager
     {
         NumberRoot Root { get; }
 
+        NumberNode? Current { get; }
+
         NumberNode AddNumber(BaseDecoratedNumber decoratedNumber, int paragraphOrder);
 
         void Reset();

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using ExamPaperParser.Number.Differentiators;
 using ExamPaperParser.Number.Manager.Exceptions;
 using ExamPaperParser.Number.Models.DecoratedNumbers;
@@ -12,6 +13,9 @@ namespace ExamPaperParser.Number.Manager
 {
     public class NumberManager : INumberManager
     {
+        private readonly static Regex ReadingQuestionKeywords = new Regex(@"阅读", RegexOptions.Compiled);
+        private readonly HashSet<string> _readingParagraphNumberDifferentiator = new HashSet<string>();
+
         private INumberDifferentiator _numberDifferentiator;
 
         /// <summary>
@@ -27,13 +31,21 @@ namespace ExamPaperParser.Number.Manager
 
         private IDictionary<string, int> _allowFirstNumberForDifferentiators = new Dictionary<string, int>();
 
-        private NumberNode? _current = null;
-
         public NumberRoot Root { get; private set; } = new NumberRoot();
+
+        public NumberNode? Current { get; private set; } = null;
 
         public NumberManager(INumberDifferentiator numberDifferentiator)
         {
             _numberDifferentiator = numberDifferentiator;
+
+            _readingParagraphNumberDifferentiator.Add(
+                _numberDifferentiator.GetDecoratedNumberDifferentiator(
+                    new BracketDecoratedNumber(new ArabicNumber("", 1, true), "", "(", ")")));
+
+            _readingParagraphNumberDifferentiator.Add(
+                _numberDifferentiator.GetDecoratedNumberDifferentiator(
+                    new UndecoratedNumber(new CircledNumber("", 1))));
         }
 
         public Backup Save()
@@ -42,7 +54,7 @@ namespace ExamPaperParser.Number.Manager
             {
                 DifferentiatorLevelPropsMapping = new Dictionary<string, LevelProps>(_differentiatorLevelPropsMapping),
                 DifferentiatorSet = new HashSet<string>(_differentiatorSetInCurrentChain),
-                Current = _current,
+                Current = Current,
             };
         }
 
@@ -50,7 +62,7 @@ namespace ExamPaperParser.Number.Manager
         {
             _differentiatorLevelPropsMapping = backup.DifferentiatorLevelPropsMapping;
             _differentiatorSetInCurrentChain = backup.DifferentiatorSet;
-            _current = backup.Current;
+            Current = backup.Current;
         }
 
         public void Reset()
@@ -60,8 +72,8 @@ namespace ExamPaperParser.Number.Manager
             _allowFirstNumberForDifferentiators.Clear();
 
             Root = new NumberRoot();
-            _current = null;
-            GC.Collect();
+            Current = null;
+            // GC.Collect();
         }
 
         private NumberNode? GoUpLevel(NumberNode current, string targetDifferentiator, bool doChanges = true)
@@ -89,23 +101,23 @@ namespace ExamPaperParser.Number.Manager
 
         private void ContinueLevel(BaseDecoratedNumber currentNumber, string differentiator, int paragraphOrder)
         {
-            if (_current == null)
+            if (Current == null)
             {
                 throw new ArgumentNullException("Current node cannot be null");
             }
 
-            if (_current.DecoratedNumber.Number.IntNumber + 1 != currentNumber.Number.IntNumber)
+            if (Current.DecoratedNumber.Number.IntNumber + 1 != currentNumber.Number.IntNumber)
             {
-                throw new DiscontinuousNumberException(currentNumber, _current.DecoratedNumber.Number.IntNumber + 1);
+                throw new DiscontinuousNumberException(currentNumber, Current.DecoratedNumber.Number.IntNumber + 1);
             }
 
-            var node = new NumberNode(_current.Parent, currentNumber, paragraphOrder);
-            _current.Parent.Children.Add(node);
-            _current = node;
+            var node = new NumberNode(Current.Parent, currentNumber, paragraphOrder);
+            Current.Parent.Children.Add(node);
+            Current = node;
 
             _differentiatorLevelPropsMapping[differentiator] = new LevelProps
             {
-                Level = _current.Level,
+                Level = Current.Level,
                 MaxNumber = currentNumber.Number.IntNumber,
             };
         }
@@ -116,12 +128,12 @@ namespace ExamPaperParser.Number.Manager
             parent.ChildDifferentiator = differentiator;
             parent.Children.Add(node);
 
-            _current = node;
+            Current = node;
             _differentiatorSetInCurrentChain.Add(differentiator);
 
             _differentiatorLevelPropsMapping[differentiator] = new LevelProps
             {
-                Level = _current.Level,
+                Level = Current.Level,
                 MaxNumber = child.Number.IntNumber,
             };
         }
@@ -136,12 +148,39 @@ namespace ExamPaperParser.Number.Manager
             return _differentiatorLevelPropsMapping.ToDictionary(o => o.Key, o => o.Value.MaxNumber + 1);
         }
 
+        private bool IsCurrentReadingQuestion()
+        {
+            if (Current == null)
+            {
+                return false;
+            }
+
+            var bodyLines = Current.Body.Split('\n');
+            var bodyFirstLine = "";
+            if (bodyLines.Length > 0)
+            {
+                bodyFirstLine = bodyLines[0];
+            }
+
+            if (ReadingQuestionKeywords.IsMatch(Current.Header) 
+                || ReadingQuestionKeywords.IsMatch(bodyFirstLine))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public NumberNode AddNumber(BaseDecoratedNumber decoratedNumber, int paragraphOrder)
         {
             var differentiator = _numberDifferentiator.GetDecoratedNumberDifferentiator(decoratedNumber);
             var number = decoratedNumber.Number.IntNumber;
+                if (_readingParagraphNumberDifferentiator.Contains(differentiator))
+                {
+                    throw new ReadingParagraphNumberException(decoratedNumber);
+                }
 
-            if (_current == null)
+            if (Current == null)
             {
                 // Init should start from 1
                 if (number == 1
@@ -155,7 +194,7 @@ namespace ExamPaperParser.Number.Manager
                     throw new StartFromNonFirstNumberException(decoratedNumber);
                 }
             }
-            else if (_current.Parent.ChildDifferentiator == differentiator)
+            else if (Current.Parent.ChildDifferentiator == differentiator)
             {
                 // Continue current level
                 ContinueLevel(decoratedNumber, differentiator, paragraphOrder);
@@ -163,19 +202,19 @@ namespace ExamPaperParser.Number.Manager
             else if (_differentiatorSetInCurrentChain.Contains(differentiator))
             {
                 // Back to up level of current chain
-                _current = GoUpLevel(_current, differentiator) ?? throw new InvalidOperationException(
+                Current = GoUpLevel(Current, differentiator) ?? throw new InvalidOperationException(
                     $"Differentiator \"{differentiator}\" should exist in up level");
 
                 // Continue this level
                 ContinueLevel(decoratedNumber, differentiator, paragraphOrder);
             }
             else if (_differentiatorLevelPropsMapping.TryGetValue(differentiator, out var levelProps))
-                // && number == levelProps.MaxNumber + 1)
+            // && number == levelProps.MaxNumber + 1)
             {
                 if (_numberDifferentiator.AllowedDifferentiatorToSpanParents.Contains(differentiator))
                 {
                     // Continue previous level
-                    AddNew(_current, decoratedNumber, differentiator, paragraphOrder);
+                    AddNew(Current, decoratedNumber, differentiator, paragraphOrder);
                 }
                 else if (number == 1
                     || (_allowFirstNumberForDifferentiators.TryGetValue(differentiator, out var maxNumber)
@@ -183,7 +222,7 @@ namespace ExamPaperParser.Number.Manager
                 {
                     // Don't allow to span parents, then check if it's a new level.
                     // If so, add new level
-                    AddNew(_current, decoratedNumber, differentiator, paragraphOrder);
+                    AddNew(Current, decoratedNumber, differentiator, paragraphOrder);
                 }
                 else
                 {
@@ -197,7 +236,7 @@ namespace ExamPaperParser.Number.Manager
                     || (_allowFirstNumberForDifferentiators.TryGetValue(differentiator, out var maxNumber)
                     && number == maxNumber))
                 {
-                    AddNew(_current, decoratedNumber, differentiator, paragraphOrder);
+                    AddNew(Current, decoratedNumber, differentiator, paragraphOrder);
                 }
                 else
                 {
@@ -205,12 +244,12 @@ namespace ExamPaperParser.Number.Manager
                 }
             }
 
-            if (_current == null)
+            if (Current == null)
             {
                 throw new InvalidOperationException("Current node shouldn't be null now");
             }
 
-            return _current;
+            return Current;
         }
     }
 }

@@ -25,7 +25,7 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
             return new RomanNumber(rawNumber, number, false);
         }
 
-        protected override int ParseRawNumber(string rawNumber)
+        protected override int? ParseRawNumber(string rawNumber)
         {
             return RomanNumberHelper.RomanToInt(rawNumber);
         }

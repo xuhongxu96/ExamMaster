@@ -20,13 +20,40 @@ namespace ExamMaster.Wpf.ViewModels
             }
         }
 
-        public ObservableCollection<DocumentModel> Documents { get; } = new ObservableCollection<DocumentModel>();
+        private ObservableCollection<DocumentModel> _documents;
+        public ObservableCollection<DocumentModel> Documents
+        {
+            get => _documents;
+            set
+            {
+                _documents = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Documents)));
+            }
+        }
+
+        private DocumentModel _selectedDocument = new DocumentModel("");
+        public DocumentModel SelectedDocument
+        {
+            get => _selectedDocument;
+            set
+            {
+                _selectedDocument = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedDocument)));
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public void Notify(string propertyName)
+        public DocumentList(string directoryPath)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            _directoryPath = directoryPath;
+            _documents = new ObservableCollection<DocumentModel>();
+        }
+
+        public DocumentList(string directoryPath, IEnumerable<DocumentModel> documents)
+        {
+            _directoryPath = directoryPath;
+            _documents = new ObservableCollection<DocumentModel>(documents);
         }
     }
 }

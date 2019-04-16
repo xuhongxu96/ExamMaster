@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -71,15 +74,7 @@ namespace ExamMaster.Wpf
                             "*.docx", SearchOption.AllDirectories))
                         {
                             var relativePath = Path.GetRelativePath(AppModel.DocumentList.DirectoryPath, item);
-                            AppModel.DocumentList.Documents.Add(new DocumentModel
-                            {
-                                RelativePath = relativePath,
-                            });
-                        }
-
-                        if (AppModel.DocumentList.Documents.Any())
-                        {
-                            AppModel.CurrentDocument = AppModel.DocumentList.Documents[0];
+                            AppModel.DocumentList.Documents.Add(new DocumentModel(relativePath));
                         }
                     }
                     catch (UnauthorizedAccessException)
@@ -114,64 +109,79 @@ namespace ExamMaster.Wpf
             }
         }
 
-        private async Task LoadDocument(DocumentModel documentModel)
+        private async Task<Tuple<List<Exception>, List<DocumentSection>>> LoadDocument(DocumentModel documentModel)
         {
-            var filePath = Path.Combine(AppModel.DocumentList.DirectoryPath, documentModel.RelativePath);
-            documentModel.Exceptions.Clear();
-            documentModel.Sections.Clear();
-
-            GC.Collect();
-
-            using (var parser = new DocxParser(filePath, _processors))
+            return await Task.Run(() =>
             {
-                (var doc, var parseExceptions) = await Task.Run(() =>
-                {
-                    var doc = parser.Parse(out var exceptions);
-                    return (doc, exceptions);
-                });
+                var filePath = Path.Combine(AppModel.DocumentList.DirectoryPath, documentModel.RelativePath);
+                var exceptions = new List<Exception>();
+                var sections = new List<DocumentSection>();
 
-                foreach (var exception in parseExceptions)
+                using (var parser = new DocxParser(filePath, _processors))
                 {
-                    documentModel.Exceptions.Add(exception);
+                    IList<Exception> parseExceptions;
+                    var doc = parser.Parse(out parseExceptions);
+
+                    exceptions.AddRange(parseExceptions);
+
+                    foreach (var result in _extractor.Extract(doc))
+                    {
+                        (var sectionName, var questionRoot, var extractExceptions) = result;
+
+                        exceptions.AddRange(extractExceptions);
+
+                        sections.Add(new DocumentSection(sectionName, ConvertNumberRootToQuestions(questionRoot)));
+                    }
                 }
 
-                var results = await Task.Run(() =>
-                {
-                    return _extractor.Extract(doc).ToArray();
-                });
-
-                foreach (var result in results)
-                {
-                    (var sectionName, var questionRoot, var extractExceptions) = result;
-
-                    foreach (var exception in extractExceptions)
-                    {
-                        documentModel.Exceptions.Add(exception);
-                    }
-
-                    var section = new DocumentSection
-                    {
-                        Name = sectionName,
-                    };
-
-                    foreach (var question in ConvertNumberRootToQuestions(questionRoot))
-                    {
-                        section.Questions.Add(question);
-                    }
-
-                    documentModel.Sections.Add(section);
-                }
-            }
+                return Tuple.Create(exceptions, sections);
+            }).ConfigureAwait(false);
         }
 
         private async void ParseButton_Click(object sender, RoutedEventArgs e)
         {
+            SelectedDocumentText.Visibility = Visibility.Collapsed;
+            StatusText.Visibility = Visibility.Visible;
+            ProgressBar.Visibility = Visibility.Visible;
+
+            ProgressBar.Maximum = AppModel.DocumentList.Documents.Count;
+            int i = 0;
+
             foreach (var documentModel in AppModel.DocumentList.Documents)
             {
-                await LoadDocument(documentModel);
+                // var filePath = Path.Combine(AppModel.DocumentList.DirectoryPath, documentModel.RelativePath);
+                (var exceptions, var sections) = await LoadDocument(documentModel);
+                documentModel.Exceptions = new ObservableCollection<Exception>(exceptions);
+                documentModel.Sections = new ObservableCollection<DocumentSection>(sections);
+
+                StatusText.Text = documentModel.RelativePath;
+                ProgressBar.Value = ++i;
             }
 
-            AppModel.DocumentList.Notify(nameof(DocumentList.Documents));
+            ProgressBar.Visibility = Visibility.Collapsed;
+            StatusText.Visibility = Visibility.Collapsed;
+            SelectedDocumentText.Visibility = Visibility.Visible;
+
+            MessageBox.Show("解析完成！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void OpenButton_Click(object sender, RoutedEventArgs e)
+        {
+            var path = Path.Combine(AppModel.DocumentList.DirectoryPath, AppModel.DocumentList.SelectedDocument.RelativePath);
+            if (File.Exists(path))
+            {
+                new Process
+                {
+                    StartInfo = new ProcessStartInfo(path)
+                    {
+                        UseShellExecute = true,
+                    }
+                }.Start();
+            }
+            else
+            {
+                MessageBox.Show("文件不存在！", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

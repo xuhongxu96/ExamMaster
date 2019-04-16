@@ -38,12 +38,14 @@ namespace ExamPaperParser.Number.Parsers.DecoratedNumberParsers
 
                 if (!(m = delimiterRegex.Match(data.CurrentView.ToString())).Success)
                 {
-                    if (number is RomanNumber && data.CurrentView.Length > 0 && beginWithAlphaRegex.IsMatch(data.CurrentView.Slice(0, 1).ToString()))
+                    if (number is RomanNumber 
+                        && data.CurrentView.Length > 0 
+                        && beginWithAlphaRegex.IsMatch(data.CurrentView.Slice(0, 1).ToString()))
                     {
                         continue;
                     }
 
-                    if (number is ChineseNumber 
+                    if ((number is ChineseNumber || number is ChineseIdeographNumber)
                         && data.CurrentView.ToString().ReplaceBetween("[(（]", "[)）]").Length > 14)
                     {
                         continue;

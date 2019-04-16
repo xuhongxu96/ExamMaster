@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ExamPaperParser.Base;
+using ExamPaperParser.DataView;
 using ExamPaperParser.Number.Models.Numbers;
 
 namespace ExamPaperParser.Number.Parsers.NumberParsers
@@ -22,6 +24,9 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
 
         private static readonly Dictionary<char, int> ZodiacCharToInt = new Dictionary<char, int>();
 
+        private readonly bool _willConsumeZodiac;
+        private readonly int _maxConsumeTraditionalCharNumber;
+
         static ChineseIdeographNumberParser()
         {
             for (var i = 0; i < TraditionalChars.Length; ++i)
@@ -35,9 +40,15 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
             }
         }
 
-        public ChineseIdeographNumberParser(bool consumeFromStart = true)
+        public ChineseIdeographNumberParser(bool consumeFromStart = true, int maxConsumeTraditionalCharNumber = 4, bool consumeZodiac = false)
             : base(consumeFromStart)
         {
+            _willConsumeZodiac = consumeZodiac;
+            _maxConsumeTraditionalCharNumber = maxConsumeTraditionalCharNumber;
+            if (_maxConsumeTraditionalCharNumber > 10)
+            {
+                _maxConsumeTraditionalCharNumber = 10;
+            }
         }
 
         protected override string MatchRegex => string.Join("|", TraditionalChars.Concat(ZodiacChars));
@@ -53,14 +64,20 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
             return new ChineseIdeographNumber(type, rawNumber, number);
         }
 
-        protected override int ParseRawNumber(string rawNumber)
+        protected override int? ParseRawNumber(string rawNumber)
         {
-            if (TraditionalCharToInt.TryGetValue(rawNumber[0], out var n))
+            if (TraditionalCharToInt.TryGetValue(rawNumber[0], out var n)
+                && n <= _maxConsumeTraditionalCharNumber)
             {
                 return n;
             }
 
-            return ZodiacCharToInt[rawNumber[0]];
+            if (_willConsumeZodiac)
+            {
+                return ZodiacCharToInt[rawNumber[0]];
+            }
+
+            return null;
         }
     }
 }

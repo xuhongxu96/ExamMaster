@@ -37,7 +37,11 @@ namespace ExamPaperParser.Number.Postprocessors
                 m = _currentScoreRegex.Match(node.Header);
                 if (m.Success)
                 {
-                    var score = double.Parse(m.Groups["score"].Value);
+                    if (!double.TryParse(m.Groups["score"].Value, out var score))
+                    {
+                        exceptions.Add(new FormatException($"Expected a number, but found {m.Groups["score"].Value}"));
+                    }
+
                     node.Score = score;
                 }
             }

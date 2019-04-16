@@ -19,7 +19,7 @@ namespace ExamPaperParser.Number.Parsers.NumberParsers
             return new AlphabeticalNumber(rawNumber, number, isLower, false);
         }
 
-        protected override int ParseRawNumber(string rawNumber)
+        protected override int? ParseRawNumber(string rawNumber)
         {
             bool isLower = rawNumber[0] <= '\uFF5A' && rawNumber[0] >= '\uFF41';
             if (isLower)

@@ -2,6 +2,7 @@
 using ExamPaperParser.DataView;
 using ExamPaperParser.Helpers;
 using ExamPaperParser.Number.Differentiators;
+using ExamPaperParser.Number.Extractors.Exceptions;
 using ExamPaperParser.Number.Manager;
 using ExamPaperParser.Number.Manager.Exceptions;
 using ExamPaperParser.Number.Models;
@@ -26,9 +27,9 @@ namespace ExamPaperParser.Number.Extractors
     {
         private Regex _spaceRegex = new Regex(@"(.*?)(\s+|$)", RegexOptions.Compiled);
 
-        private Regex _blackParagraphRegex 
+        private Regex _blackParagraphRegex
             = new Regex(@"(^【.*?(答案|解析|点评|试题).*?】|中小学教育网|转载.*?注明出处)"
-                + @"|(准考证号|答题卡|橡皮擦|本试题|本试卷|本卷)", RegexOptions.Compiled);
+                + @"|(准考证号|答题卡|答题纸|橡皮擦|本试题|本试卷|本卷)", RegexOptions.Compiled);
 
         private Regex _titleBlackRegex = new Regex(@"答案", RegexOptions.Compiled);
 
@@ -93,6 +94,10 @@ namespace ExamPaperParser.Number.Extractors
                     exception = null;
                     return node;
                 }
+                catch (ReadingParagraphNumberException)
+                {
+                    _numberManager.Load(backup);
+                }
                 catch (InvalidNumberException e)
                 {
                     exception = e;
@@ -102,7 +107,33 @@ namespace ExamPaperParser.Number.Extractors
 
             if (exception != null)
             {
-                throw new FormatException($"{paragraphOrder}: {data.CurrentView.ToString()}", exception);
+                var chain = new List<string>();
+                var p = _numberManager.Current;
+                if (p != null)
+                {
+                    while (true)
+                    {
+                        chain.Add(p.DecoratedNumber.RawRepresentation);
+
+                        var parent = p.Parent;
+                        if (parent is NumberNode node)
+                        {
+                            p = node;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (p == null)
+                {
+                    throw new FormatException($"Paragraph {paragraphOrder}: {data.CurrentView.ToString()}", exception);
+                }
+
+                chain.Reverse();
+                throw new FormatException($"{string.Join(" ", chain)}: {data.CurrentView.ToString()}", exception);
             }
 
             return null;
@@ -193,7 +224,7 @@ namespace ExamPaperParser.Number.Extractors
             return exceptions;
         }
 
-        public IEnumerable<Tuple<string, NumberRoot, List<Exception>>> Extract(ParsedFile file)
+        private IEnumerable<Tuple<string, NumberRoot, List<Exception>>> ExtractInternal(ParsedFile file)
         {
             NumberNode? lastNode = null;
             string lastTitle = string.Empty;
@@ -297,6 +328,23 @@ namespace ExamPaperParser.Number.Extractors
             {
                 exceptions.AddRange(Postprocess(_numberManager.Root));
                 yield return Tuple.Create(lastTitle, _numberManager.Root, exceptions.ToList());
+            }
+        }
+
+        public IEnumerable<Tuple<string, NumberRoot, List<Exception>>> Extract(ParsedFile file)
+        {
+            var result = ExtractInternal(file);
+            if (!result.Any())
+            {
+                yield return new Tuple<string, NumberRoot, List<Exception>>("错误", new NumberRoot(), new List<Exception>
+                {
+                    new SevereException("Empty Result"),
+                });
+            }
+
+            foreach (var item in result)
+            {
+                yield return item;
             }
         }
     }
