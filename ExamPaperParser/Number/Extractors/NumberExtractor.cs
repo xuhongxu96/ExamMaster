@@ -331,10 +331,34 @@ namespace ExamPaperParser.Number.Extractors
             }
         }
 
+        private int GetMaxNumber(NumberNode node)
+        {
+            var maxN = node.DecoratedNumber.Number.IntNumber;
+
+            foreach (var child in node.Children)
+            {
+                maxN = Math.Max(maxN, GetMaxNumber(child));
+            }
+
+            return maxN;
+        }
+
+        private int GetMaxNumber(NumberRoot root)
+        {
+            var maxN = 0;
+
+            foreach (var child in root.Children)
+            {
+                maxN = Math.Max(maxN, GetMaxNumber(child));
+            }
+
+            return maxN;
+        }
+
         public IEnumerable<Tuple<string, NumberRoot, List<Exception>>> Extract(ParsedFile file)
         {
-            var result = ExtractInternal(file);
-            if (!result.Any())
+            var result = ExtractInternal(file).ToArray();
+            if (result.Length == 0)
             {
                 yield return new Tuple<string, NumberRoot, List<Exception>>("错误", new NumberRoot(), new List<Exception>
                 {
@@ -342,8 +366,21 @@ namespace ExamPaperParser.Number.Extractors
                 });
             }
 
-            foreach (var item in result)
+            for (var i = 0; i < result.Length; ++i)
             {
+                var item = result[i];
+
+                if (i == result.Length - 1)
+                {
+                    var maxN = GetMaxNumber(item.Item2);
+                    if (maxN < 15 || maxN > 30)
+                    {
+                        item.Item3.Insert(
+                            0,
+                            new SevereException($"Max question number is {maxN}, which is abnormal"));
+                    }
+                }
+
                 yield return item;
             }
         }
