@@ -25,13 +25,17 @@ namespace ExamPaperParser.Number.Extractors
 {
     public class NumberExtractor : INumberExtractor
     {
-        private Regex _spaceRegex = new Regex(@"(.*?)(\s+|$)", RegexOptions.Compiled);
+        private Regex _spaceRegex = new Regex(@"(.*?)([^(（]\s+(?![\d\.]+\s*分)*|$)", RegexOptions.Compiled);
 
         private Regex _blackParagraphRegex
             = new Regex(@"(^【.*?(答案|解析|点评|试题).*?】|中小学教育网|转载.*?注明出处)"
                 + @"|(准考证号|答题卡|答题纸|橡皮擦|本试题|本试卷|本卷)", RegexOptions.Compiled);
 
         private Regex _titleBlackRegex = new Regex(@"答案", RegexOptions.Compiled);
+
+        private Regex _poemQuestionRegex = new Regex(@"读[^字章（）()]*?诗|诗[^字章()（）]*?读", RegexOptions.Compiled);
+
+        private Regex _simpleScoreRegex = new Regex(@"^\s*[\d.]+\s*分", RegexOptions.Compiled);
 
         private IDecoratedNumberParser _decoratedNumberParser;
         private INumberManager _numberManager = new NumberManager(new SimpleNumberDifferentiator());
@@ -159,6 +163,14 @@ namespace ExamPaperParser.Number.Extractors
 
             while (!data.EndOfStream)
             {
+                // Skip Score
+                var scoreMatch = _simpleScoreRegex.Match(data.CurrentView.ToString());
+                if (scoreMatch.Success)
+                {
+                    content.Append(scoreMatch.Value);
+                    data = data.CloneByDelta(scoreMatch.Length);
+                }
+
                 var currentContent = content.ToString();
 
                 NumberNode? node = null;
@@ -194,19 +206,28 @@ namespace ExamPaperParser.Number.Extractors
             return ExtractFromDataView(data, paragraph.Order);
         }
 
-        private bool IsTitle(ParagraphPart paragraph, double maxTextSize)
+        private bool IsTitle(string lastQuestionHeader, ParagraphPart paragraph, double maxTextSize, double avgTextSize)
         {
             if (!paragraph.Parts.Any())
             {
                 return false;
             }
 
-            var isCenter = paragraph.Style.Justification == Justification.Center
-                || paragraph.Content.Length - paragraph.Content.TrimStart().Length > 2;
+            var isUnderlined = paragraph.Parts[0] is TextPart textPart2 && textPart2.Style.IsUnderlined == true;
+            var isRealCenter = paragraph.Style.Justification == Justification.Center;
+            var isCenter = isRealCenter
+                || (!isUnderlined && paragraph.Content.Length - paragraph.Content.TrimStart().Length > 2);
             var isBold = paragraph.Parts[0] is TextPart textPart && textPart.Style.IsBold == true;
             var isTextSizeLargeEnough = maxTextSize - paragraph.GetAverageTextSize() <= 4;
+            var isTextLargerThanAvg = paragraph.GetAverageTextSize() > avgTextSize;
 
-            return (isCenter && isBold && isTextSizeLargeEnough)
+            var sentences = paragraph.Content.Trim().Split(new char[] { ',', '，', '。', '.' }, StringSplitOptions.RemoveEmptyEntries);
+            var isPoem = (sentences.Length == 2 && sentences[0].Length == sentences[1].Length)
+                || _poemQuestionRegex.IsMatch(lastQuestionHeader);
+            if (isPoem) return false;
+
+            return ((isRealCenter || isBold) && isTextSizeLargeEnough && isTextLargerThanAvg)
+                || (isCenter && isBold && isTextSizeLargeEnough)
                 || (paragraph.Content.Contains("答案") && (isCenter || isBold))
                 || (isCenter
                     && paragraph.Content.Trim().StartsWith("第")
@@ -233,6 +254,7 @@ namespace ExamPaperParser.Number.Extractors
             _numberManager.Reset();
 
             var maxTextSize = file.GetMaxTextSize();
+            var avgTextSize = file.GetAvgTextSize();
 
             var skipToNextTitle = false;
             var skipAppendingToBody = false;
@@ -248,7 +270,7 @@ namespace ExamPaperParser.Number.Extractors
                             continue;
                         }
 
-                        var isTitle = IsTitle(paragraph, maxTextSize);
+                        var isTitle = IsTitle(_numberManager.Current?.Header ?? "", paragraph, maxTextSize, avgTextSize);
                         if (isTitle)
                         {
                             skipToNextTitle = false;
@@ -282,7 +304,7 @@ namespace ExamPaperParser.Number.Extractors
                         else
                         {
                             // If no number was parsed in paragraph, judge if it is a title
-                            if (IsTitle(paragraph, maxTextSize))
+                            if (isTitle)
                             {
                                 skipAppendingToBody = false;
 
@@ -375,8 +397,7 @@ namespace ExamPaperParser.Number.Extractors
                     var maxN = GetMaxNumber(item.Item2);
                     if (maxN < 15 || maxN > 30)
                     {
-                        item.Item3.Insert(
-                            0,
+                        item.Item3.Add(
                             new SevereException($"Max question number is {maxN}, which is abnormal"));
                     }
                 }

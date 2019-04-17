@@ -15,6 +15,7 @@ namespace ExamPaperParser.Number.Parsers.DecoratedNumberParsers
     {
         private static Regex delimiterRegex = new Regex(@"^[\s.,:)\]}>．。，、：）】]", RegexOptions.Compiled);
         private static Regex beginWithAlphaRegex = new Regex(@"^[a-zA-Z]", RegexOptions.Compiled);
+        private static Regex blackNumberSuffix = new Regex(@"\s*[个条只]");
 
         public UndecoratedAndDelimiterDecoratedNumberParser(INumberParser numberParser) : base(numberParser)
         {
@@ -51,9 +52,17 @@ namespace ExamPaperParser.Number.Parsers.DecoratedNumberParsers
                         continue;
                     }
 
-                    yield return new ParsedResult<BaseDecoratedNumber>(
-                        result: new UndecoratedNumber(number),
-                        dataView: data);
+                    if (number is ChineseNumber chNum && chNum.RawNumber == "两")
+                    {
+                        continue;
+                    }
+
+                    if (!blackNumberSuffix.IsMatch(data.CurrentView.ToString()))
+                    {
+                        yield return new ParsedResult<BaseDecoratedNumber>(
+                            result: new UndecoratedNumber(number),
+                            dataView: data);
+                    }
 
                     continue;
                 }

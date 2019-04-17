@@ -60,7 +60,7 @@ namespace ExamMaster.Wpf.ViewModels
                 {
                     return ExceptionLevelCasing.None;
                 }
-                else if (_exceptions[0] is SevereException)
+                else if (_exceptions.Last() is SevereException)
                 {
                     return ExceptionLevelCasing.SevereError;
                 }

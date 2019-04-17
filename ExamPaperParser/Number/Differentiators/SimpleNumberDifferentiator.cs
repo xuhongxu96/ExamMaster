@@ -15,35 +15,14 @@ namespace ExamPaperParser.Number.Differentiators
                 case AlphabeticalNumber alphabeticalNumber:
                     if (alphabeticalNumber.IsLower)
                     {
-                        if (alphabeticalNumber.IsHalfWidth)
-                        {
-                            return "a";
-                        }
-                        else
-                        {
-                            return "\uFF41";
-                        }
+                        return "a";
                     }
                     else
                     {
-                        if (alphabeticalNumber.IsHalfWidth)
-                        {
-                            return "A";
-                        }
-                        else
-                        {
-                            return "\uFF21";
-                        }
+                        return "A";
                     }
                 case ArabicNumber arabicNumber:
-                    if (arabicNumber.IsHalfWidth)
-                    {
-                        return "1";
-                    }
-                    else
-                    {
-                        return "\uFF10";
-                    }
+                    return "1";
                 case ChineseNumber chineseNumber:
                     if (chineseNumber.IsLower)
                     {
@@ -91,10 +70,11 @@ namespace ExamPaperParser.Number.Differentiators
             { "。", "" },
             { ",", "" },
             { "，", "" },
+            { ":", "" },
+            { "：", "" },
             { "、", "" },
             { "）", ")" },
             { "】", "]" },
-            { "：", ":" },
         };
 
         public IReadOnlyCollection<string> AllowedDifferentiatorToSpanParents { get; } = new List<string>
