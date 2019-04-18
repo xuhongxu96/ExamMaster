@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using FormattedFileParser.Exceptions;
 using FormattedFileParser.Models;
 using FormattedFileParser.Models.Parts.Paragraphs;
 using FormattedFileParser.Models.Parts.Texts;
@@ -28,9 +29,9 @@ namespace FormattedFileParser.Processors
             NumberingConverterRegistry = numberingConverterRegistry;
         }
 
-        public List<Exception> Process(ParsedFile file)
+        public List<ParagraphFormatException> Process(ParsedFile file)
         {
-            var exceptions = new List<Exception>();
+            var exceptions = new List<ParagraphFormatException>();
             var numberingAllocator = new NumberingAllocator(file.NumberingManager);
 
             foreach (var part in file.Parts)
@@ -59,7 +60,7 @@ namespace FormattedFileParser.Processors
                             }
                             catch (NotImplementedException e)
                             {
-                                exceptions.Add(new FormatException(paragraphPart.Content, e));
+                                exceptions.Add(new ParagraphFormatException(e.Message, paragraphPart.Content));
                                 hasError = true;
                             }
 

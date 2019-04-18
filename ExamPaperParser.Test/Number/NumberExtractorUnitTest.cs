@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ExamPaperParser.Number.Extractors;
+using ExamPaperParser.Number.Extractors.Exceptions;
 using ExamPaperParser.Number.Manager;
 using ExamPaperParser.Number.Models.NumberTree;
 using ExamPaperParser.Number.Parsers.DecoratedNumberParsers;
 using ExamPaperParser.Number.Parsers.NumberParsers;
+using FormattedFileParser.Exceptions;
 using FormattedFileParser.NumberingUtils.Converters;
 using FormattedFileParser.Parsers.Docx;
 using FormattedFileParser.Processors;
@@ -54,16 +56,15 @@ namespace ExamPaperParser.Test.Number
             }
         }
 
-        private void WriteException(Exception e)
+        private void WriteException(ParagraphFormatException e)
         {
-            if (e.InnerException == null)
+            var msg = e switch
             {
-                _output.WriteLine($"{e.Message}\n");
-            }
-            else
-            {
-                _output.WriteLine($"{e.InnerException.Message}\n{e.Message}\n");
-            }
+                NumberException numberE => $"{numberE.Position}\n{numberE.Message}\n{numberE.Content}",
+                _ => $"{e.Message}\n{e.Content}",
+            };
+
+            _output.WriteLine(msg);
         }
 
         private void ParseDocx(string path)
@@ -72,7 +73,7 @@ namespace ExamPaperParser.Test.Number
 
             using (var docxParser = new DocxParser(path, new List<IProcessor> { processor }))
             {
-                IList<Exception> exceptions;
+                IList<ParagraphFormatException> exceptions;
                 var doc = docxParser.Parse(out exceptions);
 
                 foreach (var e in exceptions)

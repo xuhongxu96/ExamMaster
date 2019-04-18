@@ -10,6 +10,7 @@ using ExamPaperParser.Number.Models.DecoratedNumbers;
 using ExamPaperParser.Number.Models.NumberTree;
 using ExamPaperParser.Number.Parsers.DecoratedNumberParsers;
 using ExamPaperParser.Number.Postprocessors;
+using FormattedFileParser.Exceptions;
 using FormattedFileParser.Models;
 using FormattedFileParser.Models.Parts.Paragraphs;
 using FormattedFileParser.Models.Parts.Paragraphs.Style;
@@ -111,33 +112,14 @@ namespace ExamPaperParser.Number.Extractors
 
             if (exception != null)
             {
-                var chain = new List<string>();
                 var p = _numberManager.Current;
-                if (p != null)
-                {
-                    while (true)
-                    {
-                        chain.Add(p.DecoratedNumber.RawRepresentation);
-
-                        var parent = p.Parent;
-                        if (parent is NumberNode node)
-                        {
-                            p = node;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                }
-
                 if (p == null)
                 {
-                    throw new FormatException($"Paragraph {paragraphOrder}: {data.CurrentView.ToString()}", exception);
+                    throw new NumberException(exception.Message, $"Paragraph {paragraphOrder}", data.CurrentView.ToString());
                 }
 
-                chain.Reverse();
-                throw new FormatException($"{string.Join(" ", chain)}: {data.CurrentView.ToString()}", exception);
+                var chain = NumberNodeHelper.GetNumberChain(p);
+                throw new NumberException(exception.Message, string.Join(" ", chain), data.CurrentView.ToString());
             }
 
             return null;
@@ -147,18 +129,10 @@ namespace ExamPaperParser.Number.Extractors
         {
             var content = new StringBuilder();
 
-            NumberNode lastNode;
-            try
+            var lastNode = ConsumeNumberFromDataView(ref data, paragraphOrder);
+            if (lastNode == null)
             {
-                lastNode = ConsumeNumberFromDataView(ref data, paragraphOrder);
-                if (lastNode == null)
-                {
-                    return null;
-                }
-            }
-            catch (FormatException)
-            {
-                throw;
+                return null;
             }
 
             while (!data.EndOfStream)
@@ -234,9 +208,9 @@ namespace ExamPaperParser.Number.Extractors
                     && paragraph.Content.Trim().Replace(" ", "").Length < 5);
         }
 
-        private List<Exception> Postprocess(NumberRoot root)
+        private List<ParagraphFormatException> Postprocess(NumberRoot root)
         {
-            var exceptions = new List<Exception>();
+            var exceptions = new List<ParagraphFormatException>();
             foreach (var processor in _postprocessors)
             {
                 exceptions.AddRange(processor.Process(root));
@@ -245,12 +219,12 @@ namespace ExamPaperParser.Number.Extractors
             return exceptions;
         }
 
-        private IEnumerable<Tuple<string, NumberRoot, List<Exception>>> ExtractInternal(ParsedFile file)
+        private IEnumerable<Tuple<string, NumberRoot, List<ParagraphFormatException>>> ExtractInternal(ParsedFile file)
         {
             NumberNode? lastNode = null;
             string lastTitle = string.Empty;
             Dictionary<string, int>? lastAllowFirstNumbers = null;
-            var exceptions = new List<Exception>();
+            var exceptions = new List<ParagraphFormatException>();
             _numberManager.Reset();
 
             var maxTextSize = file.GetMaxTextSize();
@@ -286,7 +260,7 @@ namespace ExamPaperParser.Number.Extractors
                         {
                             currentNode = ExtractFromParagraph(paragraph);
                         }
-                        catch (FormatException e)
+                        catch (ParagraphFormatException e)
                         {
                             if (!skipAppendingToBody)
                             {
@@ -353,38 +327,14 @@ namespace ExamPaperParser.Number.Extractors
             }
         }
 
-        private int GetMaxNumber(NumberNode node)
-        {
-            var maxN = node.DecoratedNumber.Number.IntNumber;
-
-            foreach (var child in node.Children)
-            {
-                maxN = Math.Max(maxN, GetMaxNumber(child));
-            }
-
-            return maxN;
-        }
-
-        private int GetMaxNumber(NumberRoot root)
-        {
-            var maxN = 0;
-
-            foreach (var child in root.Children)
-            {
-                maxN = Math.Max(maxN, GetMaxNumber(child));
-            }
-
-            return maxN;
-        }
-
-        public IEnumerable<Tuple<string, NumberRoot, List<Exception>>> Extract(ParsedFile file)
+        public IEnumerable<Tuple<string, NumberRoot, List<ParagraphFormatException>>> Extract(ParsedFile file)
         {
             var result = ExtractInternal(file).ToArray();
             if (result.Length == 0)
             {
-                yield return new Tuple<string, NumberRoot, List<Exception>>("错误", new NumberRoot(), new List<Exception>
+                yield return new Tuple<string, NumberRoot, List<ParagraphFormatException>>("错误", new NumberRoot(), new List<ParagraphFormatException>
                 {
-                    new SevereException("Empty Result"),
+                    new SevereException("什么都没解析出来"),
                 });
             }
 
@@ -394,11 +344,11 @@ namespace ExamPaperParser.Number.Extractors
 
                 if (i == result.Length - 1)
                 {
-                    var maxN = GetMaxNumber(item.Item2);
+                    var maxN = NumberNodeHelper.GetMaxNumber(item.Item2);
                     if (maxN < 15 || maxN > 30)
                     {
                         item.Item3.Add(
-                            new SevereException($"Max question number is {maxN}, which is abnormal"));
+                            new SevereException($"最后的最大题号是{maxN}, 不正常（应在15-30间）"));
                     }
                 }
 

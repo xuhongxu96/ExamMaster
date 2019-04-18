@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using ExamPaperParser.Number.Models.NumberTree;
 using ExamPaperParser.Number.Visitors;
+using FormattedFileParser.Exceptions;
 
 namespace ExamPaperParser.Number.Postprocessors
 {
     public abstract class BaseVisitNodePostprocessor : IPostprocessor
     {
         private readonly INumberNodeVisitor _numberNodeVisitor;
-        private readonly List<Exception> _exceptions = new List<Exception>();
+        private readonly List<ParagraphFormatException> _exceptions = new List<ParagraphFormatException>();
 
         public BaseVisitNodePostprocessor()
             : this(new NumberNodeVisitor())
@@ -22,7 +23,7 @@ namespace ExamPaperParser.Number.Postprocessors
             _numberNodeVisitor.OnVisited += NumberNodeVisitor_OnVisited_CatchException;
         }
 
-        public List<Exception> Process(NumberRoot root)
+        public List<ParagraphFormatException> Process(NumberRoot root)
         {
             _exceptions.Clear();
             _numberNodeVisitor.Visit(root);
@@ -31,13 +32,13 @@ namespace ExamPaperParser.Number.Postprocessors
 
         private bool NumberNodeVisitor_OnVisited_CatchException(NumberNode node, int level)
         {
-            List<Exception> exceptions; 
+            List<ParagraphFormatException> exceptions;
             var ret = NumberNodeVisitor_OnVisited(node, level, out exceptions);
             _exceptions.AddRange(exceptions);
 
             return ret;
         }
 
-        protected abstract bool NumberNodeVisitor_OnVisited(NumberNode node, int level, out List<Exception> exceptions);
+        protected abstract bool NumberNodeVisitor_OnVisited(NumberNode node, int level, out List<ParagraphFormatException> exceptions);
     }
 }

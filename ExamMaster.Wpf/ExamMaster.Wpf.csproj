@@ -9,6 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Controls\ExceptionList.xaml" />
+    <None Remove="Controls\PaperList.xaml" />
     <None Remove="Controls\QuestionDetails.xaml" />
   </ItemGroup>
 
@@ -18,6 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Controls\ExceptionList.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\PaperList.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Controls\QuestionDetails.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

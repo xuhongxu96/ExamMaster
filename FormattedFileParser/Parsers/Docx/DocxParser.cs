@@ -1,6 +1,7 @@
 ﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using FormattedFileParser.Exceptions;
 using FormattedFileParser.Models;
 using FormattedFileParser.Models.Parts;
 using FormattedFileParser.Models.Parts.Paragraphs;
@@ -65,10 +66,10 @@ namespace FormattedFileParser.Parsers.Docx
             }
         }
 
-        public ParsedFile Parse(out IList<Exception> exceptions)
+        public ParsedFile Parse(out IList<ParagraphFormatException> exceptions)
         {
             var result = new ParsedFile(ParseDocument(_document), _numberingManager);
-            exceptions = new List<Exception>();
+            exceptions = new List<ParagraphFormatException>();
             foreach (var processor in _processors)
             {
                 foreach (var e in processor.Process(result))

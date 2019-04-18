@@ -17,9 +17,11 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using ExamMaster.Wpf.ViewModels;
 using ExamPaperParser.Number.Extractors;
+using ExamPaperParser.Number.Extractors.Exceptions;
 using ExamPaperParser.Number.Models.NumberTree;
 using ExamPaperParser.Number.Parsers.DecoratedNumberParsers;
 using ExamPaperParser.Number.Parsers.NumberParsers;
+using FormattedFileParser.Exceptions;
 using FormattedFileParser.Models;
 using FormattedFileParser.NumberingUtils.Converters;
 using FormattedFileParser.Parsers.Docx;
@@ -73,6 +75,11 @@ namespace ExamMaster.Wpf
                             AppModel.DocumentList.DirectoryPath,
                             "*.docx", SearchOption.AllDirectories))
                         {
+                            if (Path.GetFileName(item).StartsWith("~"))
+                            {
+                                continue;
+                            }
+
                             var relativePath = Path.GetRelativePath(AppModel.DocumentList.DirectoryPath, item);
                             AppModel.DocumentList.Documents.Add(new DocumentModel(relativePath));
                         }
@@ -109,29 +116,39 @@ namespace ExamMaster.Wpf
             }
         }
 
-        private async Task<Tuple<List<Exception>, List<DocumentSection>>> LoadDocument(DocumentModel documentModel)
+        private async Task<Tuple<List<ParagraphFormatException>, List<DocumentSection>>> LoadDocument(DocumentModel documentModel)
         {
             return await Task.Run(() =>
             {
                 var filePath = Path.Combine(AppModel.DocumentList.DirectoryPath, documentModel.RelativePath);
-                var exceptions = new List<Exception>();
                 var sections = new List<DocumentSection>();
+                var exceptions = new List<ParagraphFormatException>();
 
-                using (var parser = new DocxParser(filePath, _processors))
+                try
                 {
-                    IList<Exception> parseExceptions;
-                    var doc = parser.Parse(out parseExceptions);
-
-                    exceptions.AddRange(parseExceptions);
-
-                    foreach (var result in _extractor.Extract(doc))
+                    using (var parser = new DocxParser(filePath, _processors))
                     {
-                        (var sectionName, var questionRoot, var extractExceptions) = result;
+                        var doc = parser.Parse(out var parseExceptions);
+                        exceptions.AddRange(parseExceptions);
 
-                        exceptions.AddRange(extractExceptions);
+                        foreach (var result in _extractor.Extract(doc))
+                        {
+                            (var sectionName, var questionRoot, var extractExceptions) = result;
+                            exceptions.AddRange(extractExceptions);
 
-                        sections.Add(new DocumentSection(sectionName, ConvertNumberRootToQuestions(questionRoot)));
+                            sections.Add(new DocumentSection(sectionName, ConvertNumberRootToQuestions(questionRoot)));
+                        }
                     }
+                }
+                catch (IOException e)
+                {
+                    var msg = e.Message;
+                    if (e.Message.Contains("being used by another process"))
+                    {
+                        msg = "文件被占用（打开），请先关闭";
+                    }
+
+                    exceptions.Add(new SevereException(msg));
                 }
 
                 return Tuple.Create(exceptions, sections);
@@ -149,9 +166,8 @@ namespace ExamMaster.Wpf
 
             foreach (var documentModel in AppModel.DocumentList.Documents)
             {
-                // var filePath = Path.Combine(AppModel.DocumentList.DirectoryPath, documentModel.RelativePath);
                 (var exceptions, var sections) = await LoadDocument(documentModel);
-                documentModel.Exceptions = new ObservableCollection<Exception>(exceptions);
+                documentModel.Exceptions = new ObservableCollection<ParagraphFormatException>(exceptions);
                 documentModel.Sections = new ObservableCollection<DocumentSection>(sections);
 
                 StatusText.Text = documentModel.RelativePath;
@@ -182,6 +198,15 @@ namespace ExamMaster.Wpf
             {
                 MessageBox.Show("文件不存在！", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private async void ReParseButton_Click(object sender, RoutedEventArgs e)
+        {
+            var documentModel = AppModel.DocumentList.SelectedDocument;
+
+            (var exceptions, var sections) = await LoadDocument(documentModel);
+            documentModel.Exceptions = new ObservableCollection<ParagraphFormatException>(exceptions);
+            documentModel.Sections = new ObservableCollection<DocumentSection>(sections);
         }
     }
 }

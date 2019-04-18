@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using ExamPaperParser.Number.Extractors.Exceptions;
+using FormattedFileParser.Exceptions;
 
 namespace ExamMaster.Wpf.ViewModels
 {
@@ -21,22 +22,18 @@ namespace ExamMaster.Wpf.ViewModels
             }
         }
 
-        private ObservableCollection<Exception> _exceptions;
-        public ObservableCollection<Exception> Exceptions
+        private ObservableCollection<ParagraphFormatException> _exceptions;
+        public ObservableCollection<ParagraphFormatException> Exceptions
         {
             get => _exceptions;
             set
             {
                 _exceptions = value;
 
-                ExceptionMessages = _exceptions.Select(o =>
+                ExceptionMessages = _exceptions.Select(o => o switch
                 {
-                    if (o.InnerException != null)
-                    {
-                        return $"{o.Message}\n{o.InnerException.Message}";
-                    }
-
-                    return o.Message;
+                    NumberException numberE => $"位于：{numberE.Position} 后\n{numberE.Message}\n{numberE.Content}",
+                    _ => $"{o.Message}\n{o.Content}",
                 }).ToList();
 
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Exceptions)));
@@ -93,14 +90,14 @@ namespace ExamMaster.Wpf.ViewModels
         public DocumentModel(string relativePath)
         {
             _relativePath = relativePath;
-            _exceptions = new ObservableCollection<Exception>();
+            _exceptions = new ObservableCollection<ParagraphFormatException>();
             _sections = new ObservableCollection<DocumentSection>();
         }
 
-        public DocumentModel(string relativePath, IEnumerable<Exception> exceptions, IEnumerable<DocumentSection> documentSections)
+        public DocumentModel(string relativePath, IEnumerable<ParagraphFormatException> exceptions, IEnumerable<DocumentSection> documentSections)
         {
             _relativePath = relativePath;
-            _exceptions = new ObservableCollection<Exception>(exceptions);
+            _exceptions = new ObservableCollection<ParagraphFormatException>(exceptions);
             _sections = new ObservableCollection<DocumentSection>(documentSections);
         }
     }

@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using ExamPaperParser.DataView;
 using ExamPaperParser.Number.Models.NumberTree;
 using ExamPaperParser.Number.Parsers.NumberParsers;
+using FormattedFileParser.Exceptions;
 
 namespace ExamPaperParser.Number.Postprocessors
 {
@@ -19,9 +20,9 @@ namespace ExamPaperParser.Number.Postprocessors
             new HalfWidthArabicNumberParser(false),
             new FullWidthArabicNumberParser(false));
 
-        protected override bool NumberNodeVisitor_OnVisited(NumberNode node, int level, out List<Exception> exceptions)
+        protected override bool NumberNodeVisitor_OnVisited(NumberNode node, int level, out List<ParagraphFormatException> exceptions)
         {
-            exceptions = new List<Exception>();
+            exceptions = new List<ParagraphFormatException>();
 
             var m = leftRegex.Match(node.Header);
             var data = new StringDataView(node.Header);

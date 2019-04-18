@@ -73,32 +73,8 @@
                 </Grid.ColumnDefinitions>
 
                 <GroupBox Header="试卷列表">
-                    <ListView ItemsSource="{Binding Documents}"
-                              SelectedItem="{Binding SelectedDocument, Mode=TwoWay}"
-                              IsSynchronizedWithCurrentItem="True">
-                        <ListView.ItemTemplate>
-                            <DataTemplate DataType="{x:Type v:DocumentModel}">
-
-                                <TextBlock x:Name="DocumentListItemText" Text="{Binding RelativePath}" />
-
-                                <DataTemplate.Triggers>
-                                    <DataTrigger Binding="{Binding Path=ExceptionLevel}" Value="SevereError">
-                                        <Setter Property="Background" TargetName="DocumentListItemText" Value="Red" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=ExceptionLevel}" Value="Error">
-                                        <Setter Property="Background" TargetName="DocumentListItemText" Value="Orange" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=ExceptionLevel}" Value="Warning">
-                                        <Setter Property="Background" TargetName="DocumentListItemText" Value="Yellow" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=ExceptionLevel}" Value="Info">
-                                        <Setter Property="Background" TargetName="DocumentListItemText" Value="SkyBlue" />
-                                    </DataTrigger>
-                                </DataTemplate.Triggers>
-
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                    <control:PaperList Documents="{Binding Documents}" 
+                                       SelectedDocument="{Binding SelectedDocument, Mode=TwoWay}" />
                 </GroupBox>
 
                 <GridSplitter Grid.Column="1"
@@ -145,7 +121,15 @@
 
                 <control:QuestionDetails Model="{Binding SelectedDocument}" />
 
-                <Button Grid.Row="1" Content="打开源文件" Click="OpenButton_Click" />
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button Content="重新解析" Click="ReParseButton_Click" />
+                    <Button Grid.Column="1" Content="打开源文件" Click="OpenButton_Click" />
+                </Grid>
             </Grid>
 
         </Grid>

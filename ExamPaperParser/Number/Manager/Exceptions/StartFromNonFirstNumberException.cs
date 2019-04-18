@@ -9,9 +9,9 @@ namespace ExamPaperParser.Number.Manager.Exceptions
     public class StartFromNonFirstNumberException : InvalidNumberException
     {
         public StartFromNonFirstNumberException(BaseDecoratedNumber decoratedNumber) 
-            : base(decoratedNumber, $"Current number is {decoratedNumber.Number.IntNumber}" +
-                  $" (parsed from \"{decoratedNumber.RawRepresentation}\")," +
-                  $" but 1 is expected for the first number")
+            : base(decoratedNumber, $"遇到题号 \"{decoratedNumber.RawRepresentation}\" " +
+                  $"(={decoratedNumber.Number.IntNumber}), " +
+                  $"但该类型({decoratedNumber.GetType().Name}, {decoratedNumber.Number.GetType().Name})第一次出现，应为1")
         {
         }
     }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ExamPaperParser.Number.Models.NumberTree;
+using FormattedFileParser.Exceptions;
 
 namespace ExamPaperParser.Number.Postprocessors
 {
@@ -11,9 +12,9 @@ namespace ExamPaperParser.Number.Postprocessors
     {
         private static readonly Regex _readingRegex = new Regex(@"阅读", RegexOptions.Compiled);
 
-        protected override bool NumberNodeVisitor_OnVisited(NumberNode node, int level, out List<Exception> exceptions)
+        protected override bool NumberNodeVisitor_OnVisited(NumberNode node, int level, out List<ParagraphFormatException> exceptions)
         {
-            exceptions = new List<Exception>();
+            exceptions = new List<ParagraphFormatException>();
 
             var isReading = new Lazy<bool>(() => _readingRegex.IsMatch(node.Header)
                 || _readingRegex.IsMatch(node.Body));
